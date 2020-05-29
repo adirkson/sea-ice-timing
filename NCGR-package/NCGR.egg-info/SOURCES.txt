@@ -1,0 +1,12 @@
+LICENSE
+MANIFEST.in
+README.md
+setup.py
+NCGR/dcnorm.py
+NCGR/ncgr.py
+NCGR/sitdates.py
+NCGR.egg-info/PKG-INFO
+NCGR.egg-info/SOURCES.txt
+NCGR.egg-info/dependency_links.txt
+NCGR.egg-info/requires.txt
+NCGR.egg-info/top_level.txt

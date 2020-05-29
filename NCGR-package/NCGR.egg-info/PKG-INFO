@@ -1,0 +1,19 @@
+Metadata-Version: 2.1
+Name: NCGR
+Version: 1.0.1
+Summary: A Python package for calibrating probabilistic sea-ice retreatand advance date forecasts using non-homogeneous censored Gaussian regression
+Home-page: https://github.com/adirkson/sea-ice-timing
+Author: Arlan Dirkson
+Author-email: arlan.dirkson@gmail.com
+License: MIT
+Description: # NCGR
+        
+        A python package for calibrating probabilistic forecasts of sea-ice retreat and advance
+        dates using non-homogeneous Gaussian regression (NCGR). Documentation and examples on usage
+        can be found at <https://adirkson.github.io/sea-ice-timing/>.
+        
+        
+Platform: UNKNOWN
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3.7
+Description-Content-Type: text/markdown

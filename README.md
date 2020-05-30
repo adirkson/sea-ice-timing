@@ -6,5 +6,8 @@ Welcome to the sea-ice-timing repository. This repo contains the codes used in [
 
   pip install NCGR
 
-* The folder \TAQM is contains the code used to perform trend-adjusted quantile mapping.
+* The folder code\TAQM contains the code used to perform trend-adjusted quantile mapping in [1].
+
+
+[1] Dirkson et al.: to be filled in with reference following publication.
 

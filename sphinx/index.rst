@@ -35,7 +35,7 @@ Demos with Jupyter Notebook
    Examples/NCGR_gridpoint_example.ipynb
    Examples/DCNORM_distribution_example.ipynb
 
-:download:`Download notebooks and sample data </Examples.tar.gz>`.
+:download:`Download notebooks and sample data </Examples.tar.gz>`
                     
 Documentation
 ------------------

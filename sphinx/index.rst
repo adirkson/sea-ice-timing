@@ -7,6 +7,9 @@ Welcome to sea-ice-timing
 ==========================================
 ==========================================
 
+This project contains code used to perform statistical postprocessing on ensemble forecasts of
+sea-ice retreat and advance dates. A reference will be provided following publication of the article describing this methodology.
+
 NCGR
 =======
 

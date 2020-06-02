@@ -313,8 +313,13 @@ class ncgr_fullfield():
                     
                 else:
                     # Calibrate with NCGR if all of the above if statements are False
-                    
-                    pval_y = pearsonr(self.tau_t,Y_curr)[1] # p-value for observed trend
+                    # check if array is constant, if not compute p value or the trend
+                    if np.all(Y_curr==Y_curr[0]):
+                        pval_y = 999.
+                    else:
+                        pval_y = pearsonr(self.tau_t,Y_curr)[1] # p-value for observed trend
+                        
+                        
                     if pval_y<0.05:
                         # if significant set mu predictor to the observed trend
                         coeffs = np.polyfit(self.tau_t, Y_curr, deg=1)
@@ -376,7 +381,11 @@ class ncgr_fullfield():
                             
                         elif self.sigma_eqn=='s2': # second predictor is the ensemble standard deviation 
                             pred = np.std(X_all_curr,ddof=1,axis=1)
-                            p_val_x = pearsonr(pred[tau_ind], error)[1]
+                            
+                            if np.all(pred[tau_ind]==pred[tau_ind][0]) or np.all(error==error[0]):
+                                p_val_x = 999.
+                            else:
+                                p_val_x = pearsonr(pred[tau_ind], error)[1]
                             
                             if p_val_x<self.pred_pval:
                                 predictors_all_std = np.concatenate((predictors_all_std, np.array([pred])),axis=0)                                
@@ -385,7 +394,11 @@ class ncgr_fullfield():
                         
                         elif self.sigma_eqn=='s3':
                             pred = X_tc # second predictor is the trend-corrected ensemble mean (default)
-                            p_val_x = pearsonr(pred[tau_ind], error)[1]
+                            if np.all(pred[tau_ind]==pred[tau_ind][0]) or np.all(error==error[0]):
+                                p_val_x = 999.
+                            else:
+                                p_val_x = pearsonr(pred[tau_ind], error)[1]
+                                
                             if p_val_x<self.pred_pval:
                                 predictors_all_std = np.concatenate((predictors_all_std, np.array([pred])),axis=0)            
                             else:
@@ -841,7 +854,7 @@ class ncgr_gridpoint():
             
         else:
             if np.all(Y_curr==Y_curr[0]): # check if array elements are constant
-                pval_y = None
+                pval_y = 999.
             else:
                 pval_y = pearsonr(self.tau_t,Y_curr)[1]
                 
@@ -892,7 +905,7 @@ class ncgr_gridpoint():
                     pred = np.std(X_all_curr,ddof=1,axis=1)
                     
                     if np.all(pred[tau_ind]==pred[tau_ind][0]) or np.all(error==error[0]):
-                        p_val_x = None
+                        p_val_x = 999.
                     else:
                         p_val_x = pearsonr(pred[tau_ind], error)[1]
                     
@@ -904,7 +917,7 @@ class ncgr_gridpoint():
                 elif self.sigma_eqn=='s3':
                     pred = X_tc # predictor is the trend-corrected ensemble mean
                     if np.all(pred[tau_ind]==pred[tau_ind][0]) or np.all(error==error[0]):
-                        p_val_x = None
+                        p_val_x = 999.
                     else:
                         p_val_x = pearsonr(pred[tau_ind], error)[1]
                         

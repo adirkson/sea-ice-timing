@@ -27,7 +27,7 @@ event = 'ifd'
 tc = 0.5 # threshold SIC for the event (needed to apply observation mask)
 
 # initialization month
-im = 7
+im = 6
 im_id = "%02d" % im
 
 # minimum and maximum possible dates (see seaice_timing_time documentation)

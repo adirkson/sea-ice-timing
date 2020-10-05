@@ -29,5 +29,5 @@ setuptools.setup(
         "Programming Language :: Python :: 3.7"],
     packages=["NCGR"],
     include_package_data=True,
-    install_requires=["netCDF4"]
+    install_requires=["numpy","scipy","netCDF4","datetime","os"]
 )

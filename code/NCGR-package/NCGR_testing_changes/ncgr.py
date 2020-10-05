@@ -158,7 +158,7 @@ def ncgr_gridpoint(X_t, X, Y, tau_t, t, a, b,
     
     References
     ----------
-    .. [1] Dirkson., et al (2020): to be filled in with reference following acceptance.
+    .. [1] Dirkson et al (2020): to be filled in with reference following acceptance.
 
     '''
     # instantiate the two classes needed

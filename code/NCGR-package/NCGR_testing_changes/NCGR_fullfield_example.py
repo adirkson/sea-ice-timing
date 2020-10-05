@@ -19,7 +19,7 @@ fcst_netcdf = './Data/ifd_fcst_2018_im06.nc'
 clim_netcdf = './Data/ifd_clim_2008_2017_im06.nc' 
 
 # output filename (this usually doesn't exist yet)
-out_netcdf = './Data/ifd_fcst_2018_im06_ncgr_0.05.nc'
+out_netcdf = './Data/ifd_fcst_2018_im06_ncgr.nc'
 
 # Dictionary defining the relevant variables/dimensions hc_netcdf and fcst_netcdf
 model_dict = ({'event_vn' : 'ifd',

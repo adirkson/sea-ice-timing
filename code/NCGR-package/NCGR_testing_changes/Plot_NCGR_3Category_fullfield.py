@@ -27,7 +27,7 @@ event = 'ifd'
 tc = 0.5 # threshold SIC for the event (needed to apply observation mask)
 
 # initialization month
-im = 7
+im = 6
 im_id = "%02d" % im
 
 # minimum and maximum possible dates (see seaice_timing_time documentation)
@@ -47,7 +47,7 @@ fcst_yr = 2018
 # the directories where the data are located and where the output file will be saved
 dir_out = './Data/'
 
-ncgr_netcdf = dir_out+event+'_fcst_'+str(fcst_yr)+'_im'+im_id+'_ncgr_0.05.nc'
+ncgr_netcdf = dir_out+event+'_fcst_'+str(fcst_yr)+'_im'+im_id+'_ncgr.nc'
 
 # load observed SIC for day prior to the initialization date
 sic_obs = Dataset(dir_out+'seaice_conc_daily_nh_f17_20180531_v03r01_rg.nc').variables['seaice_conc_cdr'][:][0]

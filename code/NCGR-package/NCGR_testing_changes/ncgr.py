@@ -1206,7 +1206,7 @@ class fcst_vs_clim():
         dcnorm = dcnorm_gen(a=self.a,b=self.b) # create a generic DCNORM distribution object
         rv = dcnorm(mu, sigma)   # freeze a DCNORM distribution object with parameters mu and sigma
         
-        if terc_interp is None:
+        if terc_interp is None: # use Harrell-Davis estimator
             terc_low, terc_high = hdquantiles(y_clim, [1./3.,2./3.]) 
             terc_low = max(min(terc_low,self.b),self.a)
             terc_high = max(min(terc_high,self.b),self.a)
@@ -1217,8 +1217,9 @@ class fcst_vs_clim():
             terc_low, terc_high = np.percentile(y_clim, [100.*1./3., 100.*2./3.], interpolation=terc_interp)
             
         # conditions for setting forecast probabilities to fill_value
-        cond1 = (np.all(y_clim==self.a))&(rv.pdf(self.a)==1.0)
-        cond2 = (np.all(y_clim==self.b))&(rv.pdf(self.b)==1.0)
+        cond1 = (np.all(y_clim==self.a))&(rv.pdf(self.a)==1.0) # climatology is all a, forecast Pr(Y=a)=100% 
+        cond2 = (np.all(y_clim==self.b))&(rv.pdf(self.b)==1.0) # climatology is all b, forecast Pr(Y=b)=100% 
+        # terciles are equal and either Pr(Y=a)=100% or Pr(Y=b)=100% for the forecast 
         cond3 = (round(terc_low)==round(terc_high))&((rv.pdf(self.a)==1.0)|(rv.pdf(self.b)==1.0))
             
             
@@ -1228,8 +1229,6 @@ class fcst_vs_clim():
             prob_early = rv.cdf(terc_low) # probability for earlier than normal
             prob_norm = rv.cdf(terc_high) - rv.cdf(terc_low) # probability for normal
             prob_late = 1.0 - rv.cdf(terc_high) #probabliilty for later than normal   
-            if prob_early+prob_norm+prob_late!=1.0:
-                print("P(E+N+L)!=1; P(E+N+L)=", prob_early+prob_norm+prob_late)
             
         result = np.array([prob_early, prob_norm, prob_late]), np.array([terc_low, terc_high])  
         return result    

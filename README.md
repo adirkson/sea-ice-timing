@@ -5,7 +5,7 @@ Welcome to the sea-ice-timing repository, which contains the codes used in to ca
 
 Documentation and examples
 --------------------------
-adirkson.github.io/sea-ice-timing/
+<adirkson.github.io/sea-ice-timing/>
 
 Reference
 ---------

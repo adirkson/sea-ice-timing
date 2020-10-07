@@ -610,8 +610,8 @@ class ncgr_fullfield():
     
     >>> im=6 # initialization month    
     >>> si_time = sitdates.sitdates(event='ifd') # instantiate the sitdates class
-    >>> a = si_time.pre_occurence(im) # minimum date possible
-    >>> b = si_time.non_occurence(im) # maximum date possible
+    >>> a = si_time.get_min(im) # minimum date possible
+    >>> b = si_time.get_max(im) # maximum date possible
     
     Calibrate and create output file
     
@@ -950,7 +950,42 @@ class crps_funcs():
     def __init__(self,a,b):
         self.a = a
         self.b = b   
+  
+
+    def crps_dcnorm_sy(self,y,mu,sigma):
+        '''
+        Continuous rank probability score (CRPS) for a single forecast when the distribution
+        takes the form of a DCNORM distribution.
+
+        Args:
+            y (float or int):
+                Observed date.
+            
+            mu (float or int):
+                DCNORM parameter :math:`\mu`.
+                
+            sigma (float or int):
+                DCNORM parameter :math:`\sigma`
+                
+        Returns:
+            result (float):
+                CRPS
+                
+        '''
+
+        rv = norm()        
+        a_star = (self.a-mu)/sigma
+        b_star = (self.b-mu)/sigma
+        y_star = (y-mu)/sigma
+    
+        t1 = -sigma*(a_star*rv.cdf(a_star)**2. + 2*rv.cdf(a_star)*rv.pdf(a_star) -1./np.sqrt(np.pi)*rv.cdf(np.sqrt(2)*a_star))
+        t2 = sigma*(b_star*rv.cdf(b_star)**2. + 2*rv.cdf(b_star)*rv.pdf(b_star) -1./np.sqrt(np.pi)*rv.cdf(np.sqrt(2)*b_star))
+        t3 = 2*sigma*(y_star*rv.cdf(y_star) +rv.pdf(y_star)) - 2*sigma*(b_star*rv.cdf(b_star) +rv.pdf(b_star)) 
+        t4 = sigma*(b_star - y_star)
         
+        result = t1 + t2 + t3 + t4
+    
+        return result[0]     
 
     def crps_dcnorm(self,y,mu,sigma):
         '''
@@ -1199,7 +1234,7 @@ class fcst_vs_clim():
                 An object array containing 2 arrays. The first array has shape (3,) and contains the forecast
                 probabilities for being the event occuring early, near-normal, or late, respectively. Note that
                 these are set to fill_value when the forecast distribution 
-                predicts the pre-occurence of the event with 100% probability. The
+                predicts the pre-occurrence of the event with 100% probability. The
                 second array has shape (2,) and contains the climatological terciles deliniating 
                 the event categories.
         '''
@@ -1257,7 +1292,7 @@ class fcst_vs_clim():
             fcst_mean_anom (float):
                 The anomaly of ``mean`` relative to the mean of ``y_clim`` rounded to the nearest
                 day. Set to _fillvalue if the forecast distribution 
-                predicts the pre-occurence of the event with 100% probability.
+                predicts the pre-occurrence of the event with 100% probability.
         '''
         dcnorm = dcnorm_gen(a=self.a,b=self.b) # create a generic DCNORM distribution object
         rv = dcnorm(mu, sigma)   # freeze a DCNORM distribution object with parameters mu and sigma

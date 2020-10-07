@@ -3,16 +3,14 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to sea-ice-timing
-==========================================
-==========================================
-
-This project contains code used to perform statistical postprocessing on ensemble forecasts of
-sea-ice retreat and advance dates. Currently, the contents of this project are under construction and preliminary.
-
-
 NCGR
-=======
+==========================================
+==========================================
+
+``NCGR`` is a Python package is for calibrating ensemble forecasts of
+ice-free dates and freeze-up dates using Non-homogenous Censored Gaussian Regression (NCGR). 
+``NCGR`` is currently in beta version and will be updated following publication of [1].
+
 
 Installation
 -------------
@@ -48,6 +46,9 @@ Documentation
    
    code_ncgr
 
+Reference
+----------
+[1] Dirkson A., B. Denis, M. Sigmond, W.J. Merryfield. Development and Calibration of Seasonal Probabilistic Forecasts of Ice-free Dates and Freeze-up Dates. Weather and Forecasting, under review.
    
 Indices and tables
 ------------------
@@ -57,9 +58,4 @@ Indices and tables
 * :ref:`search`
 
 
-TAQM
-======
-
-Documentation
-------------------
 

@@ -144,7 +144,7 @@ class dcnorm_gen(rv_continuous):
         return np.select(condlist, choicelist)
 
 
-    def _ppf(self,rho, m, s):
+    def _ppf(self, rho, m, s):
         '''
         Returns the inverse of the cumulative distribution function for
         the DCNORM distribution at probabilities rho.

@@ -1,7 +1,4 @@
-#### from NCGR import ncgr
-#import NCGR.sitdates as sitdates
-import ncgr
-import sitdates
+from NCGR import ncgr, sitdates
 import numpy as np
 
 # load data

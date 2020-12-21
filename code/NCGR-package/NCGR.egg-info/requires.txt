@@ -1,5 +1,1 @@
-numpy
-scipy
 netCDF4
-datetime
-os

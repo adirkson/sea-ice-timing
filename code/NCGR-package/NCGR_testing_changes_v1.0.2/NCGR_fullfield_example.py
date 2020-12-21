@@ -6,9 +6,10 @@ Created on Mon Jun  1 10:12:28 2020
 @author: arlan
 """
 
-# from NCGR import ncgr
-import ncgr
-from sitdates import sitdates
+from NCGR import ncgr
+from NCGR.sitdates import sitdates
+# import ncgr
+# from sitdates import sitdates
 import time
 
 

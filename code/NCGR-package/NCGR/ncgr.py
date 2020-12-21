@@ -5,8 +5,7 @@ Created on Tue Feb 25 15:55:31 2020
 
 @author: arlan
 """
-from dcnorm import dcnorm_gen
-#from NCGR.dcnorm import dcnorm_gen
+from NCGR.dcnorm import dcnorm_gen
 
 import numpy as np
 from scipy.stats import norm, pearsonr

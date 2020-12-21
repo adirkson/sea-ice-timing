@@ -381,11 +381,8 @@ probabilistic ice-free date/freeze-up date forecast.</p>
 <div class="section" id="clim_netcdf">
 <h4>clim_netcdf<a class="headerlink" href="#clim_netcdf" title="Permalink to this headline">¶</a></h4>
 <ul class="simple">
-<li><p>Same as <code class="docutils literal notranslate"><span class="pre">obs_netcdf</span></code>, except that this file contains the observed ice-free or freeze-up dates to be used to define the climatology relative to which forecast probabilities are computed. For this example, <code class="docutils literal notranslate"><span class="pre">clim_netcdf</span></code> was created directly from <code class="docutils literal notranslate"><span class="pre">obs_netcdf</span></code> by selecting the last 10 years of observations to be used for the climatology with CDO:</p></li>
+<li><p>Same as <code class="docutils literal notranslate"><span class="pre">obs_netcdf</span></code>, except that this file contains the observed ice-free or freeze-up dates to be used to define the climatology relative to which forecast probabilities are computed. For this example, <code class="docutils literal notranslate"><span class="pre">clim_netcdf</span></code> was created directly from <code class="docutils literal notranslate"><span class="pre">obs_netcdf</span></code> by selecting the last 10 years of observations to be used for the climatology.</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cdo</span> <span class="n">seltimeyear</span><span class="p">,</span><span class="mi">2011</span><span class="o">/</span><span class="mi">2019</span><span class="o">/</span><span class="mi">1</span> <span class="n">obs_netcdf</span> <span class="n">clim_netcdf</span>
-</pre></div>
-</div>
 <p>Next, we’ll define a string-type variable for the output NetCDF file (path+filename) to be created:</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:

@@ -130,10 +130,7 @@
     "* Same as `hc_netcdf`, except that the dimensions of the {'ifd','fud'} variable must be (in plain language): `(time, latitude, longitude)` (i.e. the observed dates do not have an ensemble-like coordinate).\n",
     "\n",
     "#### clim_netcdf\n",
-    "* Same as `obs_netcdf`, except that this file contains the observed ice-free or freeze-up dates to be used to define the climatology relative to which forecast probabilities are computed. For this example, `clim_netcdf` was created directly from `obs_netcdf` by selecting the last 10 years of observations to be used for the climatology with CDO: \n",
-    "```\n",
-    "cdo seltimeyear,2011/2019/1 obs_netcdf clim_netcdf\n",
-    "```"
+    "* Same as `obs_netcdf`, except that this file contains the observed ice-free or freeze-up dates to be used to define the climatology relative to which forecast probabilities are computed. For this example, `clim_netcdf` was created directly from `obs_netcdf` by selecting the last 10 years of observations to be used for the climatology."
    ]
   },
   {

@@ -2,9 +2,10 @@
 
 import numpy as np
 from scipy.stats import rv_continuous, norm
-from scipy.optimize import fsolve, minimize
+from scipy.optimize import minimize
 
-
+eps_sigma = 1e-6 # to constrain \sigma>=1e-6 during MLE
+eps_mu = 1. # to constrain a-1<=\mu<=b+1 during MLE
 class dcnorm_gen(rv_continuous):            
     r"""A doubly-censored normal (DCNORM) random variable, censored numerically below :math:`a` and
     above :math:`b`.
@@ -20,7 +21,8 @@ class dcnorm_gen(rv_continuous):
      
     where :math:`1_{(a,b)}=1` when :math:`a<x<b` and :math:`1_{(a,b)}=0` otherwise; :math:`\delta(x)` is the delta function;
     :math:`\phi(\cdot)` and :math:`\Phi(\cdot)` are respectively the PDf and CDF for a standard normal distribution with
-    zero mean and unit variance.
+    zero mean and unit variance. The support is :math:`a\leq X \leq b`, and requirements are :math:`\infty<\mu<\infty` and
+    :math:`\sigma>0`.
 
 
     :class:`dcnorm_gen` is an instance of a subclass of :py:class:`~scipy.stats.rv_continuous`, and therefore
@@ -47,7 +49,7 @@ class dcnorm_gen(rv_continuous):
     ``fit(data)``
         This replaces the ``fit`` method in :py:class:`~scipy.stats.rv_continuous`. 
         Computes the maximum likelihood estimates for the DCNORM distribution
-        parameters following [2].
+        parameters.
         
     Examples
     --------
@@ -127,7 +129,7 @@ class dcnorm_gen(rv_continuous):
             
         return np.select(condlist, choicelist)
         
-    def _cdf(self, x, m, s):         
+    def cdf(self, x, m, s):         
         # the ranges of x that break up the piecewise
         # cdf
         condlist = [x<self.a,
@@ -143,7 +145,7 @@ class dcnorm_gen(rv_continuous):
         return np.select(condlist, choicelist)
 
 
-    def _ppf(self,rho, m, s):
+    def _ppf(self, rho, m, s):
         '''
         Returns the inverse of the cumulative distribution function for
         the DCNORM distribution at probabilities rho.
@@ -198,7 +200,7 @@ class dcnorm_gen(rv_continuous):
             params0 = [np.mean(y), np.std(y,ddof=1)]
             
             # minimize the negative of the log-likelihood of the DCNORM distribution
-            res = minimize(loglike, params0, bounds=((self.a,self.b),(0.0,np.inf)), jac = self.jac_loglike, args=(y,))
+            res = minimize(loglike, params0, bounds=((self.a-eps_mu,self.b+eps_mu),(eps_sigma,np.inf)), jac = self.jac_loglike, args=(y,))
             m_hat, s_hat = res.x
         else:
             m_hat, s_hat = norm.fit(y)
@@ -274,8 +276,8 @@ class dcnorm_gen(rv_continuous):
     def _argcheck(self,m,s):
         #subclass the argcheck method to ensure parameters
         #are constrained to their bounds
-        check = (m>=self.a)&(m<=self.b)&(s>0.)
-
+        # check = (m>=self.a-eps_mu)&(m<=self.b+eps_mu)&(s>=eps_sigma)
+        check = s > 0.0
         if check==True:
             return True
         else:

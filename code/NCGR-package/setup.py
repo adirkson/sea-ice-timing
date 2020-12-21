@@ -15,7 +15,7 @@ def readme():
 
 setuptools.setup(
     name="NCGR",
-    version="1.0.1",
+    version="1.0.2",
     description="A Python package for calibrating probabilistic sea-ice retreat" 
                  +"and advance date forecasts using non-homogeneous censored Gaussian regression",
     long_description=readme(),

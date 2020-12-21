@@ -97,7 +97,7 @@ def build_cons(predictors, y, a, b):
     
     return cons
 
-class ncgr_gridpoint:
+class ncgr_gridpoint():
     '''
     Args:
         a (float or int):
@@ -147,7 +147,7 @@ class ncgr_gridpoint:
         
         References
         ----------
-        .. [1] Dirkson et al (2020): to be filled in with reference following acceptance.
+        .. [1] Dirkson, A.​, B. Denis., M.,Sigmond., & Merryfield, W.J. (2020). Development and Calibration of SeasonalProbabilistic Forecasts of Ice-free Dates and Freeze-up Dates. ​Weather and Forecasting​. doi:10.1175/WAF-D-20-0066.1.
     
 
     '''
@@ -605,51 +605,8 @@ class ncgr_fullfield:
     
     References
     ----------
-    .. [1] To be filled in with reference following publication.
+    .. [1] Dirkson, A.​, B. Denis., M.,Sigmond., & Merryfield, W.J. (2020). Development and Calibration of SeasonalProbabilistic Forecasts of Ice-free Dates and Freeze-up Dates. ​Weather and Forecasting​. doi:10.1175/WAF-D-20-0066.1.
 
-
-
-    Examples
-    ---------
-    >>> from NCGR import ncgr
-    >>> import NCGR.sitdates as sitdates
-    
-    Input filenames (replace <path prefix> with the path where the Data foler is contained)
-
-    >>> fcst_netcdf = '<path prefix>/Data/ifd_fcst_2018_im06.nc' # forecast    
-    >>> hc_netcdf = '<path prefix>/Data/ifd_hc_1979_2017_im06.nc' # training hindcasts
-    >>> obs_netcdf = '<path prefix>/Data/ifd_obs_1979_2017_im06.nc' # training observations
-    >>> clim_netcdf = '<path prefix>/Data/ifd_clim_2008_2017_im06.nc' # observations for reference climatology
-    
-    Output filename (this doesn't exist yet; it's a filename to be written)
-    
-    >>> out_netcdf = '<path prefix>/Data/ifd_fcst_2018_im06_ncgr.nc'
-
-    Dictionary defining the relevant variables/dimensions hc_netcdf and fcst_netcdf
-
-    >>> model_dict = ({'event_vn' : 'ifd',
-                       'time_vn' : 'time'},
-                      {'time_dn' : 'time',
-                       'ens_dn' : 'ensemble'})
-
-    Dictionary defining the relevant variables/dimensions obs_netcdf
- 
-    >>> obs_dict = ({'event_vn' : 'ifd', 
-                     'time_vn' : 'time'},
-                    {'time_dn' : 'time'})    
-    
-    Variables for time
-    
-    >>> im=6 # initialization month    
-    >>> si_time = sitdates.sitdates(event='ifd') # instantiate the sitdates class
-    >>> a = si_time.get_min(im) # minimum date possible
-    >>> b = si_time.get_max(im) # maximum date possible
-    
-    Calibrate and create output file
-    
-    >>> ncgr.ncgr_fullfield(fcst_netcdf,hc_netcdf, obs_netcdf, out_netcdf,
-                      a, b, model_dict, obs_dict, 
-                      clim_netcdf=clim_netcdf) 
     '''
 
     def __init__(self, fcst_netcdf, hc_netcdf, obs_netcdf, out_netcdf, a, b, model_dict, obs_dict, 
@@ -743,6 +700,12 @@ class ncgr_fullfield:
                         The three forecast probabilities for early, near-normal, and late
                         sea-ice retreat/advance, where `nrow` and `ncol` are defined as
                         in ``mu_cal``.                
+
+                    fcst_pre (ndarray), shape (`nrow`, `ncol`):
+                        The probability for the pre-occurrence of the event. 
+
+                    fcst_non (ndarray), shape (`nrow`, `ncol`):
+                        The probability for the non-occurrence of the event. 
         
                     clim_terc (ndarray), shape (`2`, `nrow`, `ncol`):
                         The two terciles (i.e. 1/3 and 2/3 quantiles) for the observed climatology,
@@ -767,6 +730,14 @@ class ncgr_fullfield:
                         Calibrated :math:`\sigma` parameter for the predictive 
                         DCNORM distribution, where `nrow` and `ncol` are defined as
                         in ``mu_cal``.                     
+
+                    fcst_pre (ndarray), shape (`nrow`, `ncol`):
+                        The probability for the pre-occurrence of the event. 
+
+                    fcst_non (ndarray), shape (`nrow`, `ncol`):
+                        The probability for the non-occurrence of the event. 
+
+
         '''
 
         mu_cal = np.zeros((self.nrow,self.ncol))
@@ -796,24 +767,30 @@ class ncgr_fullfield:
                     mu_cal[row,col], sigma_cal[row,col] = self.fill_value, self.fill_value
                     fcst_pre[row,col], fcst_non[row,col] = self.fill_value, self.fill_value
                     
+                # if not masked
                 else:
+                    # all obs show event has always already occurred at the time of initializatoin
                     if np.all(self.Y[:,row,col]==self.a):
                         mu_cal[row,col], sigma_cal[row,col] = self.a - eps_mu, eps_sigma
+                        
+                    # all obs show the event never occurrs over the course of the forecast/season
                     elif np.all(self.Y[:,row,col]==self.b):
                         mu_cal[row,col], sigma_cal[row,col] = self.b + eps_mu, eps_sigma
+                    
+                    # else calibrate
                     else:                    
                         # build model
                         predictors_tau, predictors_t, coeffs0 = ngp.build_model(self.X_t[:,row,col], self.X[:,:,row,col], self.Y[:,row,col], 
                                                                                 self.tau, self.t,
                                                                                 self.sigma_eqn, self.pred_pval)
-                        
+                        # minimize CRPS and get regression coefficients
                         coeffs = ngp.optimizer(self.Y[:,row,col], predictors_tau, coeffs0, self.es_tol)
                         
+                        # apply real-time predictors and coefficients to get calibrated distribution for the forecast
                         mu_cal[row,col], sigma_cal[row,col] = ngp.forecast_mode(predictors_t, coeffs)
-                        
-                        fcst_pre[row,col], fcst_non[row,col] = fvc.fcst_prenon(mu_cal[row,col], sigma_cal[row,col])
-                        
-                    
+                                            
+                    fcst_pre[row,col], fcst_non[row,col] = fvc.fcst_prenon(mu_cal[row,col], sigma_cal[row,col])
+                                           
                     if self.clim_netcdf:
                         fcst_probs[:,row,col], clim_terc[:,row,col], clim_params[:,row,col] = fvc.event_probs(mu_cal[row,col], sigma_cal[row,col], 
                                                                                                      self.Y_clim[:,row,col],

@@ -52,7 +52,6 @@ si_time = sitdates(event=event)
 a = si_time.get_min(im)
 b = si_time.get_max(im)
 
-
 fcst_file = Dataset(ncgr_netcdf)
 ncgr_p_en = fcst_file['prob_EN'][:][0]
 ncgr_p_nn = fcst_file['prob_NN'][:][0]
@@ -61,6 +60,8 @@ ncgr_p_ln = fcst_file['prob_LN'][:][0]
 clim_terc_low = fcst_file['clim_1_3'][:][0]
 clim_terc_up = fcst_file['clim_2_3'][:][0]
 
+fcst_pre = fcst_file['prob_pre'][:][0]
+fcst_non = fcst_file['prob_non'][:][0]
 
 fill_value = fcst_file['prob_EN']._FillValue
     
@@ -68,10 +69,14 @@ ncgr_p_en[ncgr_p_en==fill_value] = np.nan
 ncgr_p_nn[ncgr_p_nn==fill_value] = np.nan
 ncgr_p_ln[ncgr_p_ln==fill_value] = np.nan
 
-ncgr_p_en[sic_obs>tc] = np.nan
-ncgr_p_nn[sic_obs>tc] = np.nan
-ncgr_p_ln[sic_obs>tc] = np.nan
-
+if event=='fud':
+    ncgr_p_en[sic_obs>tc] = np.nan
+    ncgr_p_nn[sic_obs>tc] = np.nan
+    ncgr_p_ln[sic_obs>tc] = np.nan
+if event=='ifd':
+    ncgr_p_en[sic_obs<tc] = np.nan
+    ncgr_p_nn[sic_obs<tc] = np.nan
+    ncgr_p_ln[sic_obs<tc] = np.nan
 
 lat = fcst_file['latitude'][:]
 lon = fcst_file['longitude'][:]
@@ -92,9 +97,13 @@ ncgr_p_ln_new[ncgr_p_ln==np.nanmax(np.array([ncgr_p_en,ncgr_p_nn,ncgr_p_ln]),axi
 clim_ut_mask = np.zeros(ncgr_p_nn_new.shape)
 clim_ut_mask[(clim_terc_up==b)&(ncgr_p_nn_new>0.0)] = 1.0
 
-# mask for when the event has already taken place at the time of initialization
-
-
+# mask for white color in areas where the IFD (FUD) does not (has already) occurr(ed) at the end (start) of the forecast
+ice_mask = np.zeros(ncgr_p_nn_new.shape)
+if event=='ifd':
+    ice_mask[(fcst_non==1.0)|(sic_obs<tc)] = 1.0
+if event=='fud':
+    ice_mask[(fcst_pre==1.0)|(sic_obs>tc)] = 1.0
+    
 ########### Plotting  #####################
 def truncate_colormap(cmap, minval=0.0, maxval=1.0, n=100):
     # cuts off the ends of cmap colors at minval and maxval
@@ -124,10 +133,15 @@ clevs_lab = [n+'%' for n in clevs_lab]
 clevs_ticks = np.array(clevs)
 
 # colormaps for each category
-cmap_ln = cm.YlOrRd
-cmap_nn = cm.Greens
-cmap_en = cm.Blues
-
+if event=='fud':
+    cmap_ln = cm.YlOrRd
+    cmap_nn = cm.Greens
+    cmap_en = cm.Blues
+if event=='ifd':
+    cmap_en = cm.YlOrRd
+    cmap_nn = cm.Greens
+    cmap_ln = cm.Blues
+    
 cmap_en = truncate_colormap(cmap_en,0.3,1.0)
 cmap_nn = truncate_colormap(cmap_nn,0.3,1.0)
 cmap_ln = truncate_colormap(cmap_ln,0.3,1.0)
@@ -136,29 +150,27 @@ cmap_en.set_under('0.75')
 cmap_nn.set_under('0.75')
 cmap_ln.set_under('0.75')
 
-# cmap_ln.set_over(cm.YlOrRd(256))
-# cmap_nn.set_over(cm.Greens(256))
-# cmap_en.set_over(cm.Blues(256))
-
 norm_en = mpl.colors.BoundaryNorm(clevs, cmap_en.N)
 norm_nn = mpl.colors.BoundaryNorm(clevs, cmap_nn.N)
 norm_ln = mpl.colors.BoundaryNorm(clevs, cmap_ln.N)
 
 
+#############################################################
+
 fig = plt.figure(num=1,figsize=(8.5,9))
 plt.clf()
 
-#############################################################
 ax = set_up_subplot(fig)
-datain1 = np.copy(ncgr_p_en_new)
-masked_array1 = np.ma.array(datain1, mask=datain1==0.0)
 
-datain2 = np.copy(ncgr_p_nn_new)
-masked_array2 = np.ma.array(datain2, mask=datain2==0.0)
+datain_masked = np.ma.array(ice_mask, mask=ice_mask==0.0)
 
-datain3 = np.copy(ncgr_p_ln_new)
-masked_array3 = np.ma.array(datain3, mask=datain3==0.0)
+masked_array1 = np.ma.array(ncgr_p_en_new, mask=ncgr_p_en_new==0.0)
+masked_array2 = np.ma.array(ncgr_p_nn_new, mask=ncgr_p_nn_new==0.0)
+masked_array3 = np.ma.array(ncgr_p_ln_new, mask=ncgr_p_ln_new==0.0)
 
+
+ax.pcolormesh(LON,LAT,datain_masked, cmap=cm.Greys,
+              rasterized=True,transform=ccrs.PlateCarree(), zorder=2) 
 
 im1 = ax.pcolormesh(LON,LAT,masked_array1,vmin=0.4,vmax=1.0,
               cmap=cmap_en,norm=norm_en,rasterized=True,transform=ccrs.PlateCarree(), zorder=2) 
@@ -171,7 +183,7 @@ im3 = ax.pcolormesh(LON,LAT,masked_array3,vmin=0.4,vmax=1.0,
 
     
 ########### hatching for when the upper tercile for climatology includes the last day ############
-label = 'Probability for \n no '+event.upper()
+label = 'Probability includes \n no '+event.upper()
 masked_array4 = np.ma.array(clim_ut_mask, mask=clim_ut_mask==0.0)
 
 plt.rcParams['hatch.color'] = 'white'

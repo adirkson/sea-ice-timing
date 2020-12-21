@@ -49,7 +49,7 @@ class dcnorm_gen(rv_continuous):
     ``fit(data)``
         This replaces the ``fit`` method in :py:class:`~scipy.stats.rv_continuous`. 
         Computes the maximum likelihood estimates for the DCNORM distribution
-        parameters following [2].
+        parameters.
         
     Examples
     --------

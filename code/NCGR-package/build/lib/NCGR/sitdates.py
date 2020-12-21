@@ -6,71 +6,70 @@ Created on Mon Jan 28 10:56:59 2019
 @author: arlan
 """
 import numpy as np
-from datetime import date
 import datetime
-
 
 class sitdates:
     '''
-    This module contains several functions that are useful for defining minimium and 
-    maximum possible dates, and for converting between day-of-year and normal date formats
+    This module contains several functions that are useful for setting and getting minimium and 
+    maximum possible dates, and for converting between day-of-year and date formats
     for plotting.
     
     Args:
-        event (str, optional) {'ifd','fud'}:
-            Can be one of either 'ifd' or 'fud'. If provided, but ``min_dates`` and ``max_dates``
-            arguments aren't provdided, then :py:data:`sitdates.min_dates` and 
-            :py:data:`sitdates.max_dates` arrays will be set to the values used in
-            [1]. If not provided, ``min_dates`` and ``max_dates`` arguments need to be specified
-            in order to use :py:data:`sitdates.min_dates` and 
-            :py:data:`sitdates.max_dates`.
+        event (str) {'ifd','fud'}:
+            Can be either 'ifd' or 'fud'.
             
         min_dates (array, optional), shape=(12,):
-            If provided, this array defines the minimum dates
-            allowed for the forecast dates for each of the 12 initialization dates
-            of the year. If not provided, then :py:data:`time_functions.min_dates`
-            will be set to the values used in [1]. Note that you can override any
-            of these default dates using the :py:meth:`set_min_date` function.
+            If provided, this array defines the minimum date (:math:`a` value)
+            allowed for the ice-free date or freeze-up date for each calendar month corresponding to
+            the initialization month.
+            If not provided, then :py:data:`time_functions.min_dates`
+            will be set to the values used in [1]. To only change
+            a subset of those dates from [1], rather than including this argument it may be faster to 
+            use the :py:meth:`set_min_date` function.
 
         max_dates (array, optional), shape=(12,):
-            If provided, this array defines the maximum dates
-            allowed for the forecast dates for each of the 12 initialization dates
-            of the year. If not provided, then :py:data:`time_functions.min_dates`
-            will be set to the values used in [1]. Note that you can override any
-            of these default dates using the :py:meth:`set_max_date` function.    
+            If provided, this array defines the maximum date (:math:`b` value)
+            allowed for the ice-free date or freeze-up date for each calendar month corresponding to
+            the initialization month.
+            If not provided, then :py:data:`time_functions.min_dates`
+            will be set to the values used in [1]. To only change
+            a subset of those dates from [1], rather than including this argument it may be faster to 
+            use the :py:meth:`set_min_date` function. 
                            
     References
     ----------
-    .. [1] Dirkson et al., (2020): to be filled in with reference following publication.
+    .. [1] To be filled in with reference following publication.
 
     '''
-    def __init__(self, event=None, min_dates=None, max_dates=None):
+    def __init__(self, event, min_dates=None, max_dates=None):
         if min_dates:
-            self.min_dates = min_dates.astype(float)
+            self.min_dates = min_dates
         else:
             if event=='ifd':
-                self.min_dates = np.array([90,90,90,90,120,151,455,455,455,455,455,455]).astype(float)
+                self.min_dates = np.array([90,90,90,90,120,151,455,455,455,455,455,455])
             elif event=='fud':
-                self.min_dates =  np.array([273,273,273,273,273,273,273,273,273,273,304,334]).astype(float)
+                self.min_dates =  np.array([273,273,273,273,273,273,273,273,273,273,304,334])
                 
         if max_dates:
             self.max_dates = max_dates
         else:
             if event=='ifd':
-                self.max_dates = np.array([273,273,273,273,273,273,546,577,608,638,638,638]).astype(float)
+                self.max_dates = np.array([273,273,273,273,273,273,546,577,608,638,638,638])
             elif event=='fud':
-                self.max_dates = np.array([365,396,424,455,455,455,455,455,455,455,455,455]).astype(float)
+                self.max_dates = np.array([365,396,424,455,455,455,455,455,455,455,455,455])
                 
-    def set_min_date(self,month,value):
+    def set_min(self,month,value):
         '''
-        Override pre-existing minimum date value in :py:meth:`time_functions.min_dates` array.
+        Override pre-existing minimum date value(s) in :py:data:`time_functions.min_dates` array.
         
         Args:
-            month (int):
-                Value between 1 and 12 corresponding to the calendar month of the year to override.
+            month (int or array(N,dtype='int')):
+                Value(s) between 1 and 12 corresponding to the calendar month(s) for which the minimum
+                date is to be overriden.
             
-            value (int)
-                The date in day-of-year format that will override the pre-existing minimum date.
+            value (int, float, or array(N,)):
+                The date(s) in day-of-year format that will override the pre-existing minimum date(s)
+                for the calendar month(s) provided in the ``month`` argument.
                 
         Returns:
             None
@@ -78,16 +77,18 @@ class sitdates:
         self.min_dates[month-1] = value                
         return None 
     
-    def set_max_date(self,month,value):
+    def set_max(self,month,value):
         '''
-        Override pre-existing maximum date value in :py:meth:`time_functions.min_dates` array.
+        Override pre-existing maximum date value(s) in :py:data:`time_functions.min_dates` array.
         
         Args:
-            month (int):
-                Value between 1 and 12 corresponding to the calendar month of the year to override.
+            month (int or array(N,dtype='int')):
+                Value(s) between 1 and 12 corresponding to the calendar month(s) for which the maximum
+                date is to be overriden.
             
-            value (int)
-                The date in day-of-year format that will override the pre-existing minimum date.
+            value (int, float, or array(N,)):
+                The date(s) in day-of-year format that will override the pre-existing maximum date(s)
+                for the calendar month(s) provided in the ``month`` argument.
                 
         Returns:
             None
@@ -95,140 +96,84 @@ class sitdates:
         self.max_dates[month-1] = value
         return None
 
-    def pre_occurence(self,month):
+    def get_min(self,month):
         '''
-        Returns the value that the ice free date 
-        has been set to, given that ice is <50% at start of forecast
+        Returns the value of the minimum possible ice-free/freeze-up date for a given initialization month. 
                
         Args:
-            month (int):
-                Integer beteween 1 and 12
+            month (int or array(N,dtype='int')):
+                Value(s) between 1 and 12 corresponding to the calendar month(s) for which the minimum
+                date is to be returned.
                 
         Returns:
-            Day of year integer 
+            Day of year or days of year representing the maximum possible date for ``month``. 
         '''        
         
         return self.min_dates[month-1] 
     
-    def non_occurence(self,month):
+    def get_max(self,month):
         '''
-        Returns the value that the ice free date 
-        has been set to, given the non-occcurence of the event, for a 
-        specfic initialization month.
+        Returns the value of the maximum possible ice-free/freeze-up date for a given initialization month. 
                
         Args:
-            month (int):
-                Integer beteween 1 and 12
+            month (int or array(N,dtype='int')):
+                Value(s) between 1 and 12 corresponding to the calendar month(s) for which the maximum
+                date is to be returned.
                 
         Returns:
-            Day of year integer 
+            Day of year or days of year representing the maximum possible date for ``month``. 
         '''        
        
         return self.max_dates[month-1]
       
     
-    def date_to_doy(self,mmdd,next_year=False):
+    def date_to_doy(self,date):
         '''
-        Compute date in day-of-year format from mm/dd format.
+        Compute date in day-of-year format for a given date.
         
         Args:
-            month (int):
-                Integer beteween 1 and 12
-                
-            day (int):
-                Integer between 1 and 31
-                    
-            next_year (boolean):
-                True if DOY is for next year, false if DOY is for current year.
-                Default is False.
+            date (object):
+                A ''date object'' made with the :py:meth:`datetime.date` function
+                (see: https://docs.python.org/3/library/datetime.html#date-objects).
                 
         Returns:
-            Day of year integer 
+            Day-of-year value
         '''
-        month = int(mmdd[0:2])
-        day = int(mmdd[3:])
-        if next_year==False:
-            f_date = date(2013,month,day)
-        else: 
-            f_date = date(2014,month,day)
-            
-        s_date = date(2013, 1,1)
-        delta = f_date - s_date
-        
-            
+        delta = date - datetime.date(date.year, 1,1)
         return delta.days    
-    
-    def date_to_doy2(self,month,day,next_year=False):
+
+    def dates_to_doys(self,dates):
         '''
-        Compute day of year from a given month and day. It is possible
-        to span to the next year, so we use 2013 and 2014 to compute day of years
-        for such cases as these are non leap years.
+        Compute dates in day-of-year format for a given list of dates.
         
         Args:
-            month (int):
-                Integer beteween 1 and 12
-                
-            day (int):
-                Integer between 1 and 31
-                    
-            next_year (boolean):
-                True if DOY is for next year, false if DOY is for current year.
-                Default is False.
+            dates (list):
+                A list of ''date objects'' made with the :py:meth:`datetime.date` function
+                (see: https://docs.python.org/3/library/datetime.html#date-objects).
                 
         Returns:
-            Day of year integer 
+            List of days-of-year values 
         '''
-        if next_year==False:
-            f_date = date(2013,month,day)
-        else: 
-            f_date = date(2014,month,day)
-            
-        s_date = date(2013, 1,1)
-        delta = f_date - s_date
-        
-            
-        return delta.days     
+        doys = []
+        for date in dates:
+            delta = date - datetime.date(date.year, 1,1)
+            doys.append(delta.days)
+        return doys        
      
-    
-    def doy_to_date(self,doy,next_year=False):
+    def doy_to_date(self, doy, format='%m/%d'):
         '''
-        Compute Month and day from given julian doy. It is possible
-        to span to the next year, so we use 2013 and 2014 to compute day of years
-        for such cases as these are non leap years.
+        Return a date for a given day-of-year value. 
         
         Args:
-            month (int):
-                Integer beteween 1 and 12
-                
-            day (int):
-                Integer between 1 and 31
-                    
-            next_year (boolean):
-                True if DOY is for next year, false if DOY is for current year.
-                Default is False.
+            doy (int or float):
+                Day-of-year value
+                 
+            format (optional, 'str'):
+                An acceptable format given to :py:meth:`strftime` (default='%m%d';
+                see: https://docs.python.org/3/library/datetime.html#strftime-strptime-behavior)
                 
         Returns:
             Day of year integer 
         '''
-        if next_year==False:
-            date=datetime.datetime(2013, 1, 1) + datetime.timedelta(doy)
-        else:
-            date=datetime.datetime(2014, 1, 1) + datetime.timedelta(doy)
-            
-            
-        return date.strftime('%m/%d') 
-    
-    def init_doy(self,month):
-        '''
-        Compute day of year of the initialization date for a given
-        initialization month.
-        
-        Args:
-            month (int):
-                Integer beteween 1 and 12
-                
-        Returns:
-            Day of year integer 
-        '''
-        return self.date_to_doy2(month,1)         
-    
+        date = datetime.datetime(2014, 1, 1) + datetime.timedelta(float(doy))
+        return date.strftime(format) 

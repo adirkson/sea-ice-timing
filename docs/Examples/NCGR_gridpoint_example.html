@@ -1,0 +1,950 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Performing NCGR at a gridpoint &#8212; sea-ice-timing 1.0.2 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true, "ignoreClass": "document", "processClass": "math|output_area"}})</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Using the dcnorm module" href="DCNORM_distribution_example.html" />
+    <link rel="prev" title="Performing NCGR on a full forecast field" href="NCGR_fullfield_example.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  
+<style>
+/* CSS for nbsphinx extension */
+
+/* remove conflicting styling from Sphinx themes */
+div.nbinput.container,
+div.nbinput.container div.prompt,
+div.nbinput.container div.input_area,
+div.nbinput.container div[class*=highlight],
+div.nbinput.container div[class*=highlight] pre,
+div.nboutput.container,
+div.nboutput.container div.prompt,
+div.nboutput.container div.output_area,
+div.nboutput.container div[class*=highlight],
+div.nboutput.container div[class*=highlight] pre {
+    background: none;
+    border: none;
+    padding: 0 0;
+    margin: 0;
+    box-shadow: none;
+}
+
+/* avoid gaps between output lines */
+div.nboutput.container div[class*=highlight] pre {
+    line-height: normal;
+}
+
+/* input/output containers */
+div.nbinput.container,
+div.nboutput.container {
+    display: -webkit-flex;
+    display: flex;
+    align-items: flex-start;
+    margin: 0;
+    width: 100%;
+}
+@media (max-width: 540px) {
+    div.nbinput.container,
+    div.nboutput.container {
+        flex-direction: column;
+    }
+}
+
+/* input container */
+div.nbinput.container {
+    padding-top: 5px;
+}
+
+/* last container */
+div.nblast.container {
+    padding-bottom: 5px;
+}
+
+/* input prompt */
+div.nbinput.container div.prompt pre {
+    color: #307FC1;
+}
+
+/* output prompt */
+div.nboutput.container div.prompt pre {
+    color: #BF5B3D;
+}
+
+/* all prompts */
+div.nbinput.container div.prompt,
+div.nboutput.container div.prompt {
+    width: 4.5ex;
+    padding-top: 5px;
+    position: relative;
+    user-select: none;
+}
+
+div.nbinput.container div.prompt > div,
+div.nboutput.container div.prompt > div {
+    position: absolute;
+    right: 0;
+    margin-right: 0.3ex;
+}
+
+@media (max-width: 540px) {
+    div.nbinput.container div.prompt,
+    div.nboutput.container div.prompt {
+        width: unset;
+        text-align: left;
+        padding: 0.4em;
+    }
+    div.nboutput.container div.prompt.empty {
+        padding: 0;
+    }
+
+    div.nbinput.container div.prompt > div,
+    div.nboutput.container div.prompt > div {
+        position: unset;
+    }
+}
+
+/* disable scrollbars on prompts */
+div.nbinput.container div.prompt pre,
+div.nboutput.container div.prompt pre {
+    overflow: hidden;
+}
+
+/* input/output area */
+div.nbinput.container div.input_area,
+div.nboutput.container div.output_area {
+    -webkit-flex: 1;
+    flex: 1;
+    overflow: auto;
+}
+@media (max-width: 540px) {
+    div.nbinput.container div.input_area,
+    div.nboutput.container div.output_area {
+        width: 100%;
+    }
+}
+
+/* input area */
+div.nbinput.container div.input_area {
+    border: 1px solid #e0e0e0;
+    border-radius: 2px;
+    background: #f5f5f5;
+}
+
+/* override MathJax center alignment in output cells */
+div.nboutput.container div[class*=MathJax] {
+    text-align: left !important;
+}
+
+/* override sphinx.ext.imgmath center alignment in output cells */
+div.nboutput.container div.math p {
+    text-align: left;
+}
+
+/* standard error */
+div.nboutput.container div.output_area.stderr {
+    background: #fdd;
+}
+
+/* ANSI colors */
+.ansi-black-fg { color: #3E424D; }
+.ansi-black-bg { background-color: #3E424D; }
+.ansi-black-intense-fg { color: #282C36; }
+.ansi-black-intense-bg { background-color: #282C36; }
+.ansi-red-fg { color: #E75C58; }
+.ansi-red-bg { background-color: #E75C58; }
+.ansi-red-intense-fg { color: #B22B31; }
+.ansi-red-intense-bg { background-color: #B22B31; }
+.ansi-green-fg { color: #00A250; }
+.ansi-green-bg { background-color: #00A250; }
+.ansi-green-intense-fg { color: #007427; }
+.ansi-green-intense-bg { background-color: #007427; }
+.ansi-yellow-fg { color: #DDB62B; }
+.ansi-yellow-bg { background-color: #DDB62B; }
+.ansi-yellow-intense-fg { color: #B27D12; }
+.ansi-yellow-intense-bg { background-color: #B27D12; }
+.ansi-blue-fg { color: #208FFB; }
+.ansi-blue-bg { background-color: #208FFB; }
+.ansi-blue-intense-fg { color: #0065CA; }
+.ansi-blue-intense-bg { background-color: #0065CA; }
+.ansi-magenta-fg { color: #D160C4; }
+.ansi-magenta-bg { background-color: #D160C4; }
+.ansi-magenta-intense-fg { color: #A03196; }
+.ansi-magenta-intense-bg { background-color: #A03196; }
+.ansi-cyan-fg { color: #60C6C8; }
+.ansi-cyan-bg { background-color: #60C6C8; }
+.ansi-cyan-intense-fg { color: #258F8F; }
+.ansi-cyan-intense-bg { background-color: #258F8F; }
+.ansi-white-fg { color: #C5C1B4; }
+.ansi-white-bg { background-color: #C5C1B4; }
+.ansi-white-intense-fg { color: #A1A6B2; }
+.ansi-white-intense-bg { background-color: #A1A6B2; }
+
+.ansi-default-inverse-fg { color: #FFFFFF; }
+.ansi-default-inverse-bg { background-color: #000000; }
+
+.ansi-bold { font-weight: bold; }
+.ansi-underline { text-decoration: underline; }
+
+
+div.nbinput.container div.input_area div[class*=highlight] > pre,
+div.nboutput.container div.output_area div[class*=highlight] > pre,
+div.nboutput.container div.output_area div[class*=highlight].math,
+div.nboutput.container div.output_area.rendered_html,
+div.nboutput.container div.output_area > div.output_javascript,
+div.nboutput.container div.output_area:not(.rendered_html) > img{
+    padding: 5px;
+}
+
+/* fix copybtn overflow problem in chromium (needed for 'sphinx_copybutton') */
+div.nbinput.container div.input_area > div[class^='highlight'],
+div.nboutput.container div.output_area > div[class^='highlight']{
+    overflow-y: hidden;
+}
+
+/* hide copybtn icon on prompts (needed for 'sphinx_copybutton') */
+.prompt a.copybtn {
+    display: none;
+}
+
+/* Some additional styling taken form the Jupyter notebook CSS */
+div.rendered_html table {
+  border: none;
+  border-collapse: collapse;
+  border-spacing: 0;
+  color: black;
+  font-size: 12px;
+  table-layout: fixed;
+}
+div.rendered_html thead {
+  border-bottom: 1px solid black;
+  vertical-align: bottom;
+}
+div.rendered_html tr,
+div.rendered_html th,
+div.rendered_html td {
+  text-align: right;
+  vertical-align: middle;
+  padding: 0.5em 0.5em;
+  line-height: normal;
+  white-space: normal;
+  max-width: none;
+  border: none;
+}
+div.rendered_html th {
+  font-weight: bold;
+}
+div.rendered_html tbody tr:nth-child(odd) {
+  background: #f5f5f5;
+}
+div.rendered_html tbody tr:hover {
+  background: rgba(66, 165, 245, 0.2);
+}
+</style>
+<div class="section" id="Performing-NCGR-at-a-gridpoint">
+<h1>Performing NCGR at a gridpoint<a class="headerlink" href="#Performing-NCGR-at-a-gridpoint" title="Permalink to this headline">¶</a></h1>
+<p>This notebook walks you through how to use the <code class="docutils literal notranslate"><span class="pre">NCGR</span></code> package to perform non-homogenous Gaussian regression (NCGR) on an ice-free date or freeze-up date ensemble forecast at a single location using the <code class="docutils literal notranslate"><span class="pre">NCGR.ncgr_gridpoint</span></code> module. This option is perhaps preferred if you don’t want to rely on the requirements involved in the <code class="docutils literal notranslate"><span class="pre">ncgr_fullfield()</span></code> module, if memory limitations prevent you from using <code class="docutils literal notranslate"><span class="pre">ncgr_fullfield()</span></code>, or if you would like to modify or have more control over different steps
+of the NCGR algorithm.</p>
+<div class="section" id="Outline">
+<h2>Outline<a class="headerlink" href="#Outline" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>The first section of this noetbook, <strong>Main Recipe</strong>, provides the relevant function calls to perform NCGR and produce relevant forecast variables.</p></li>
+<li><p>The second section of this notebook, <strong>Working Script</strong>, offers a copy and pasteable section of code that loads some sample hindcasts and observations at a single gridpoint and performs NCGR on a forecast for a specified year.</p></li>
+<li><p>The third section of the notebook, <strong>Detailed explanation &amp; plotting</strong>, goes through step-by-step and provides insights on each piece of code, the data, and creates plots showing the results.</p></li>
+</ul>
+<p><em>Hint: You can hold “shift+tab” inside the parenthesis of any function in the notebook to see its help/docstring.</em></p>
+</div>
+<div class="section" id="Main-Recipe">
+<h2>Main Recipe<a class="headerlink" href="#Main-Recipe" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">NCGR</span> <span class="kn">import</span> <span class="n">ncgr</span>
+
+<span class="c1"># instatiate the ncgr_gridpoint and fcst_vs_clim modules</span>
+<span class="n">ngp</span> <span class="o">=</span> <span class="n">ncgr</span><span class="o">.</span><span class="n">ncgr_gridpoint</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+<span class="n">fvc</span> <span class="o">=</span> <span class="n">ncgr</span><span class="o">.</span><span class="n">fcst_vs_clim</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">)</span>
+
+<span class="c1"># build model</span>
+<span class="n">predictors_tau</span><span class="p">,</span> <span class="n">predictors_t</span><span class="p">,</span> <span class="n">coeffs0</span> <span class="o">=</span> <span class="n">ngp</span><span class="o">.</span><span class="n">build_model</span><span class="p">(</span><span class="n">X_t</span><span class="p">,</span> <span class="n">X_tau</span><span class="p">,</span> <span class="n">Y_tau</span><span class="p">,</span> <span class="n">tau</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
+
+<span class="c1"># optimize/minimize the CRPS to estimate regression coefficients</span>
+<span class="n">coeffs</span> <span class="o">=</span> <span class="n">ngp</span><span class="o">.</span><span class="n">optimizer</span><span class="p">(</span><span class="n">Y_tau</span><span class="p">,</span> <span class="n">predictors_tau</span><span class="p">,</span> <span class="n">coeffs0</span><span class="p">)</span>
+
+<span class="c1"># Compute calibrated forecast distribution parameters for year t</span>
+<span class="n">mu_t</span><span class="p">,</span> <span class="n">sigma_t</span> <span class="o">=</span> <span class="n">ngp</span><span class="o">.</span><span class="n">forecast_mode</span><span class="p">(</span><span class="n">predictors_t</span><span class="p">,</span> <span class="n">coeffs</span><span class="p">)</span>
+
+<span class="c1"># get relevant forecast information based on the forecast distribution</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">fvc</span><span class="o">.</span><span class="n">event_probs</span><span class="p">(</span><span class="n">mu_t</span><span class="p">,</span> <span class="n">sigma_t</span><span class="p">,</span> <span class="n">Y_clim</span><span class="p">)</span>
+<span class="n">fcst_probs</span><span class="p">,</span> <span class="n">clim_terc</span><span class="p">,</span> <span class="n">clim_params</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">probs</span><span class="p">,</span> <span class="n">result</span><span class="o">.</span><span class="n">terciles</span><span class="p">,</span> <span class="n">result</span><span class="o">.</span><span class="n">params</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="Bare-bones-code">
+<h2>Bare-bones code<a class="headerlink" href="#Bare-bones-code" title="Permalink to this headline">¶</a></h2>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">NCGR</span> <span class="kn">import</span> <span class="n">ncgr</span><span class="p">,</span> <span class="n">sitdates</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="c1"># load data</span>
+<span class="n">X_all</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;Data/fud_X.npy&#39;</span><span class="p">)</span>
+<span class="n">Y_all</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;Data/fud_Y.npy&#39;</span><span class="p">)</span>
+
+<span class="c1"># define time variables</span>
+<span class="n">event</span><span class="o">=</span><span class="s1">&#39;fud&#39;</span>
+<span class="n">years_all</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1979</span><span class="p">,</span> <span class="mi">2017</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">im</span> <span class="o">=</span> <span class="mi">12</span> <span class="c1"># initialization month</span>
+
+<span class="c1"># instantiate the sitdates class</span>
+<span class="n">si_time</span> <span class="o">=</span> <span class="n">sitdates</span><span class="o">.</span><span class="n">sitdates</span><span class="p">(</span><span class="n">event</span><span class="o">=</span><span class="n">event</span><span class="p">)</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">si_time</span><span class="o">.</span><span class="n">get_min</span><span class="p">(</span><span class="n">im</span><span class="p">)</span> <span class="c1"># minimum date possible</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">si_time</span><span class="o">.</span><span class="n">get_max</span><span class="p">(</span><span class="n">im</span><span class="p">)</span> <span class="c1"># maximum date possible</span>
+
+
+<span class="c1"># instatiate the ncgr_gridpoint module</span>
+<span class="n">ngp</span> <span class="o">=</span> <span class="n">ncgr</span><span class="o">.</span><span class="n">ncgr_gridpoint</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+<span class="c1"># instantiate the fcst_vs_clim module</span>
+<span class="n">fvc</span> <span class="o">=</span> <span class="n">ncgr</span><span class="o">.</span><span class="n">fcst_vs_clim</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">)</span>
+
+
+<span class="c1"># the forecast year to calibrate</span>
+<span class="n">t</span><span class="o">=</span><span class="mi">2016</span>
+
+<span class="c1"># set up relevant time variables for calibrating the forecast</span>
+<span class="c1"># using data only from previous</span>
+<span class="n">t_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">years_all</span><span class="o">==</span><span class="n">t</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">tau</span> <span class="o">=</span> <span class="n">years_all</span><span class="p">[</span><span class="n">years_all</span><span class="o">&lt;</span><span class="n">t</span><span class="p">]</span> <span class="c1"># years used for training</span>
+<span class="n">X_tau</span> <span class="o">=</span> <span class="n">X_all</span><span class="p">[</span><span class="n">years_all</span><span class="o">&lt;</span><span class="n">t</span><span class="p">,:]</span> <span class="c1"># training hindcasts</span>
+<span class="n">Y_tau</span> <span class="o">=</span> <span class="n">Y_all</span><span class="p">[</span><span class="n">years_all</span><span class="o">&lt;</span><span class="n">t</span><span class="p">]</span> <span class="c1"># training observations</span>
+<span class="n">X_t</span> <span class="o">=</span> <span class="n">X_all</span><span class="p">[</span><span class="n">t_idx</span><span class="p">]</span> <span class="c1"># forecast to be calibrated</span>
+<span class="n">Y_t</span> <span class="o">=</span> <span class="n">Y_all</span><span class="p">[</span><span class="n">t_idx</span><span class="p">]</span> <span class="c1"># the observed freeze-up date corresponding to the forecast</span>
+
+<span class="c1">############## calibration  #######################</span>
+<span class="c1"># build calibration model</span>
+<span class="n">predictors_tau</span><span class="p">,</span> <span class="n">predictors_t</span><span class="p">,</span> <span class="n">coeffs0</span> <span class="o">=</span> <span class="n">ngp</span><span class="o">.</span><span class="n">build_model</span><span class="p">(</span><span class="n">X_t</span><span class="p">,</span> <span class="n">X_tau</span><span class="p">,</span> <span class="n">Y_tau</span><span class="p">,</span> <span class="n">tau</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
+
+<span class="c1"># optimize/minmize the CRPS to estimate regression coefficients</span>
+<span class="n">coeffs</span> <span class="o">=</span> <span class="n">ngp</span><span class="o">.</span><span class="n">optimizer</span><span class="p">(</span><span class="n">Y_tau</span><span class="p">,</span> <span class="n">predictors_tau</span><span class="p">,</span> <span class="n">coeffs0</span><span class="p">)</span>
+
+<span class="c1"># Compute calibrated forecast distribution parameters for year t</span>
+<span class="n">mu_t</span><span class="p">,</span> <span class="n">sigma_t</span> <span class="o">=</span> <span class="n">ngp</span><span class="o">.</span><span class="n">forecast_mode</span><span class="p">(</span><span class="n">predictors_t</span><span class="p">,</span> <span class="n">coeffs</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Calibrated forecast distribution parameters (mu,sigma):&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">mu_t</span><span class="p">,</span> <span class="n">sigma_t</span><span class="p">])</span>
+
+<span class="c1">###### Compute forecast probabilities relative to climatology #################</span>
+<span class="n">n_clim</span><span class="o">=</span><span class="mi">10</span> <span class="c1"># number of years preceding the forecast to use as climatology (note: this is not the training period)</span>
+<span class="n">Y_clim</span> <span class="o">=</span> <span class="n">Y_all</span><span class="p">[</span><span class="n">t_idx</span><span class="o">-</span><span class="n">n_clim</span><span class="p">:</span><span class="n">t_idx</span><span class="p">]</span> <span class="c1"># observations for defining the climatology (past 10 years for this example)</span>
+
+<span class="c1"># get result</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">fvc</span><span class="o">.</span><span class="n">event_probs</span><span class="p">(</span><span class="n">mu_t</span><span class="p">,</span> <span class="n">sigma_t</span><span class="p">,</span> <span class="n">Y_clim</span><span class="p">)</span>
+
+<span class="c1"># unpack result</span>
+<span class="n">fcst_probs</span><span class="p">,</span> <span class="n">clim_terc</span><span class="p">,</span> <span class="n">clim_params</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">probs</span><span class="p">,</span> <span class="n">result</span><span class="o">.</span><span class="n">terciles</span><span class="p">,</span> <span class="n">result</span><span class="o">.</span><span class="n">params</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Probilities for early, normal, late freeze-up:&quot;</span><span class="p">,</span> <span class="n">fcst_probs</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Climatology terciles:&quot;</span><span class="p">,</span> <span class="n">clim_terc</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Climatology distribution parameters (mu,sigma):&quot;</span><span class="p">,</span> <span class="n">clim_params</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Calibrated forecast distribution parameters (mu,sigma): [360.06167043316805, 15.537755970468954]
+Probilities for early, normal, late freeze-up: [0.08214745 0.24499739 0.67285516]
+Climatology terciles: [338.45221123 353.10369408]
+Climatology distribution parameters (mu,sigma): [345.77795265  17.00784101]
+</pre></div></div>
+</div>
+</div>
+<div class="section" id="Detailed-explanation-&amp;-plotting-the-result">
+<h2>Detailed explanation &amp; plotting the result<a class="headerlink" href="#Detailed-explanation-&-plotting-the-result" title="Permalink to this headline">¶</a></h2>
+<p>First import the relevant libraries:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="c1"># same as above</span>
+<span class="kn">from</span> <span class="nn">NCGR</span> <span class="kn">import</span> <span class="n">ncgr</span><span class="p">,</span> <span class="n">sitdates</span>
+<span class="kn">from</span> <span class="nn">NCGR.dcnorm</span> <span class="kn">import</span> <span class="n">dcnorm_gen</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="c1"># plus a few extras for analysing data and plotting</span>
+<span class="c1">#from NCGR.dcnorm import dcnorm_gen</span>
+<span class="kn">from</span> <span class="nn">dcnorm</span> <span class="kn">import</span> <span class="n">dcnorm_gen</span>
+<span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="kn">import</span> <span class="n">pearsonr</span>
+<span class="kn">from</span> <span class="nn">scipy.signal</span> <span class="kn">import</span> <span class="n">detrend</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">mpl_toolkits.axes_grid1.inset_locator</span> <span class="kn">import</span> <span class="n">inset_axes</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+</pre></div>
+</div>
+</div>
+<p>Load pre-saved arrays containing hindcasts and observations at a single gridpoint:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">X_all</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;Data/fud_X.npy&#39;</span><span class="p">)</span>
+<span class="n">Y_all</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;Data/fud_Y.npy&#39;</span><span class="p">)</span>
+
+<span class="n">years_all</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1979</span><span class="p">,</span> <span class="mi">2017</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>The array <code class="docutils literal notranslate"><span class="pre">X_all</span></code> contains 39 years of <em>freeze-up date</em> hindcasts (first dimension) and 10 ensemble members (second dimension) at a single gridpoint in the Bering Sea. These hindcasts were initialized on December 1, 1979-2017 (hence the new array introduced <code class="docutils literal notranslate"><span class="pre">years_all</span></code> which contains those same years). The array <code class="docutils literal notranslate"><span class="pre">Y</span></code> contains the corresponding observed freeze-up dates for the same location.</p>
+<p>To get a sense of the data, we’ll plot the time series of the hindcasts and observations, as well as a scatterplot comparing them:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">num</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span><span class="mi">4</span><span class="p">))</span>
+<span class="n">ax1</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">years_all</span><span class="p">,</span> <span class="n">X_all</span><span class="p">,</span> <span class="s1">&#39;0.75&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="c1"># all ensemble members</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">years_all</span><span class="p">,</span> <span class="n">X_all</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="s1">&#39;k-&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;ensemble mean&#39;</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">years_all</span><span class="p">,</span> <span class="n">Y_all</span><span class="p">,</span> <span class="s1">&#39;ro&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;observation&#39;</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;--&#39;</span><span class="p">,</span><span class="n">color</span><span class="o">=</span><span class="s1">&#39;0.5&#39;</span><span class="p">,</span><span class="n">linewidth</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s1">&#39;upper left&#39;</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Freeze-up Date (DOY)&#39;</span><span class="p">)</span>
+
+<span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">num</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span><span class="mi">6</span><span class="p">))</span>
+<span class="n">ax2</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">)</span>
+<span class="n">scatter</span> <span class="o">=</span> <span class="n">ax2</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">X_all</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="n">Y_all</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">years_all</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;viridis&#39;</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;correlation=</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="k">str</span>(np.around(pearsonr(X_all.mean(axis=1), Y_all)[0],3)))
+<span class="n">legend</span> <span class="o">=</span> <span class="n">ax2</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="o">*</span><span class="n">scatter</span><span class="o">.</span><span class="n">legend_elements</span><span class="p">(),</span>
+                    <span class="n">loc</span><span class="o">=</span><span class="s2">&quot;upper left&quot;</span><span class="p">,</span> <span class="n">ncol</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">((</span><span class="mi">320</span><span class="p">,</span><span class="mi">460</span><span class="p">))</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">((</span><span class="mi">320</span><span class="p">,</span><span class="mi">460</span><span class="p">))</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Ensemble-mean Freeze-up Date (DOY)&#39;</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Observed Freeze-up Date (DOY)&#39;</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">add_artist</span><span class="p">(</span><span class="n">legend</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/Examples_NCGR_gridpoint_example_9_0.png" src="../_images/Examples_NCGR_gridpoint_example_9_0.png" />
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/Examples_NCGR_gridpoint_example_9_1.png" src="../_images/Examples_NCGR_gridpoint_example_9_1.png" />
+</div>
+</div>
+<p>The hindcast freeze-up date typically occurs much later than the observed freeze-up date; However, there is a relatively strong correlation between the ensemble mean and the observation (0.61).</p>
+<p>We’ll now create some time-like variables required for calibration:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">im</span><span class="o">=</span><span class="mi">12</span> <span class="c1"># define the initialization month (December)</span>
+
+<span class="c1"># instantiate the sitdates class and provide the event of interest</span>
+<span class="n">si_time</span> <span class="o">=</span> <span class="n">sitdates</span><span class="o">.</span><span class="n">sitdates</span><span class="p">(</span><span class="n">event</span><span class="o">=</span><span class="s1">&#39;fud&#39;</span><span class="p">)</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">si_time</span><span class="o">.</span><span class="n">get_min</span><span class="p">(</span><span class="n">im</span><span class="p">)</span> <span class="c1"># minimum date possible</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">si_time</span><span class="o">.</span><span class="n">get_max</span><span class="p">(</span><span class="n">im</span><span class="p">)</span> <span class="c1"># maximum date possible</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;a=</span><span class="si">%d</span><span class="s2">, b=</span><span class="si">%d</span><span class="s2">&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+a=334, b=455
+</pre></div></div>
+</div>
+<p>In the above section of code, we’ve made use of the <code class="docutils literal notranslate"><span class="pre">sidates</span></code> module by instantiating it with the event variable (in this case ‘fud’ for <em>freeze-up date</em>; for the retreat season we would set event=‘ifd’). By doing so, and by calling on <code class="docutils literal notranslate"><span class="pre">si_time.get_min()</span></code> and <code class="docutils literal notranslate"><span class="pre">si_time.get_max()</span></code> with the initialization month as an input argument, the minimum and maximum dates possible are returned. These are printed as <code class="docutils literal notranslate"><span class="pre">a=334</span></code> and <code class="docutils literal notranslate"><span class="pre">b=455</span></code>. Reading the docstring for <code class="docutils literal notranslate"><span class="pre">sidates.sitdates()</span></code> you’ll see
+that default dates are set to those given in [1].</p>
+<div class="section" id="Useful-side-note:">
+<h3><em>Useful side-note</em>:<a class="headerlink" href="#Useful-side-note:" title="Permalink to this headline">¶</a></h3>
+<p>If rather different conventions are used for your data, you can change the dates associated with <code class="docutils literal notranslate"><span class="pre">si_time.get_min()</span></code> and <code class="docutils literal notranslate"><span class="pre">si_time.get_max()</span></code> using <code class="docutils literal notranslate"><span class="pre">si_time.set_min()</span></code> and <code class="docutils literal notranslate"><span class="pre">si_time.set_max()</span></code>. For example, for <code class="docutils literal notranslate"><span class="pre">im=12</span></code>, the convention in [1] is to consider the freeze-up date for the current freeze season. If rather your hindcast and observed data were created so that the freeze-up date is for the following season, you could change the minimum and maximum dates corresponding to <code class="docutils literal notranslate"><span class="pre">im=12</span></code>
+accordingly with:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">si_time</span><span class="o">.</span><span class="n">set_min</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="mi">538</span><span class="p">)</span> <span class="c1"># corresponding to the start of the freeze season (October 1) for the next year</span>
+<span class="n">si_time</span><span class="o">.</span><span class="n">set_max</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="mi">699</span><span class="p">)</span> <span class="c1"># November 30 of the following year (if e.g. the forecast was run for 12 months)</span>
+</pre></div>
+</div>
+<p>Those dates are then set and the minimum and maximum dates can be retrieved at any time within the working script using:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">a</span> <span class="o">=</span> <span class="n">si_time</span><span class="o">.</span><span class="n">get_min</span><span class="p">(</span><span class="n">im</span><span class="p">)</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">si_time</span><span class="o">.</span><span class="n">get_max</span><span class="p">(</span><span class="n">im</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>We’ll now define the year of the forecast to be calibrate and split the data in <code class="docutils literal notranslate"><span class="pre">X_all</span></code> and <code class="docutils literal notranslate"><span class="pre">Y_all</span></code> into the training and testing data. For this example, we’ll emulate an operational scenario and only use data from years preceding the year being calibrated to train the calibration model.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">t</span> <span class="o">=</span> <span class="mi">2016</span> <span class="c1"># the forecast initialization year</span>
+<span class="n">tau</span> <span class="o">=</span> <span class="n">years_all</span><span class="p">[</span><span class="n">years_all</span><span class="o">&lt;</span><span class="n">t</span><span class="p">]</span> <span class="c1"># years used for training</span>
+<span class="n">X_tau</span> <span class="o">=</span> <span class="n">X_all</span><span class="p">[</span><span class="n">years_all</span><span class="o">&lt;</span><span class="n">t</span><span class="p">,:]</span> <span class="c1"># training hindcasts</span>
+<span class="n">Y_tau</span> <span class="o">=</span> <span class="n">Y_all</span><span class="p">[</span><span class="n">years_all</span><span class="o">&lt;</span><span class="n">t</span><span class="p">]</span> <span class="c1"># training observations</span>
+<span class="n">X_t</span> <span class="o">=</span> <span class="n">X_all</span><span class="p">[</span><span class="n">years_all</span><span class="o">==</span><span class="n">t</span><span class="p">]</span> <span class="c1"># forecast to be calibrated</span>
+<span class="n">Y_t</span> <span class="o">=</span> <span class="n">Y_all</span><span class="p">[</span><span class="n">years_all</span><span class="o">==</span><span class="n">t</span><span class="p">]</span> <span class="c1"># the observed freeze-up date corresponding to the forecast</span>
+</pre></div>
+</div>
+</div>
+<p>The calibration is carried out in two function calls. First, we must create an instance of the <code class="docutils literal notranslate"><span class="pre">ncgr.ncgr_gridpoint</span></code> module, providing it with the minimum and maximum dates possible. We’ll call it <code class="docutils literal notranslate"><span class="pre">ngp</span></code>:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">ngp</span> <span class="o">=</span> <span class="n">ncgr</span><span class="o">.</span><span class="n">ncgr_gridpoint</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>Now we can use this <code class="docutils literal notranslate"><span class="pre">ngp</span></code> object to build the predictors and initial-coefficient guesses to be used to estimate the regression coefficients:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="c1"># build calibration model</span>
+<span class="n">predictors_tau</span><span class="p">,</span> <span class="n">predictors_t</span><span class="p">,</span> <span class="n">coeffs0</span> <span class="o">=</span> <span class="n">ngp</span><span class="o">.</span><span class="n">build_model</span><span class="p">(</span><span class="n">X_t</span><span class="p">,</span> <span class="n">X_tau</span><span class="p">,</span> <span class="n">Y_tau</span><span class="p">,</span> <span class="n">tau</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>The predictors are given in two variables: <code class="docutils literal notranslate"><span class="pre">predictors_tau</span></code>, which correspond to the predictors over the training period, and <code class="docutils literal notranslate"><span class="pre">predictors_t</span></code>, which are the predictors for the forecast year of interest. <code class="docutils literal notranslate"><span class="pre">coeffs0</span></code> is a 4x1 array containing the initial guesses for the coefficients to be estimated.</p>
+<p>Now we’ll estimate the regression coefficients for the calibration model by calling on <code class="docutils literal notranslate"><span class="pre">ngp.optimizer</span></code>, which minimizes the continuous rank probability score (CRPS) over the training data:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="c1"># optimize/minmize the CRPS to estimate regression coefficients</span>
+<span class="n">coeffs</span> <span class="o">=</span> <span class="n">ngp</span><span class="o">.</span><span class="n">optimizer</span><span class="p">(</span><span class="n">Y_tau</span><span class="p">,</span> <span class="n">predictors_tau</span><span class="p">,</span> <span class="n">coeffs0</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>Now that we have the optimized coefficients, we can estimate the distribution parameters in forecast mode, <span class="math notranslate nohighlight">\(\mu\)</span> and <span class="math notranslate nohighlight">\(\sigma\)</span>, using <code class="docutils literal notranslate"><span class="pre">ngp.forecast_mode</span></code>:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="c1"># Compute calibrated forecast distribution parameters for year t</span>
+<span class="n">mu_t</span><span class="p">,</span> <span class="n">sigma_t</span> <span class="o">=</span> <span class="n">ngp</span><span class="o">.</span><span class="n">forecast_mode</span><span class="p">(</span><span class="n">predictors_t</span><span class="p">,</span> <span class="n">coeffs</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>At this point, it’s worth mentioning that if you would like to know how to use these parameters to compute various statistics from a DCNORM distribution, take a look at the <code class="docutils literal notranslate"><span class="pre">DCNORM_distribution_example.ipnyb</span></code> notebook provided in this folder. We’ll take a look at the forecast distribution in a moment with a couple examples, but first let’s compute the forecast probabilities for early, normal, and late sea-ice advance given our distribution parameters. To do this, we’ll need to use another NCGR
+module called <code class="docutils literal notranslate"><span class="pre">fcst_vs_clim</span></code>:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="c1"># instantiate the fcst_vs_clim module</span>
+<span class="n">fvc</span> <span class="o">=</span> <span class="n">ncgr</span><span class="o">.</span><span class="n">fcst_vs_clim</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>We need a reference to define our three categories, so we’ll use the last observed advance dates for the last 10 years. These can be extracted from <code class="docutils literal notranslate"><span class="pre">Y</span></code> as follows:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">n_clim</span><span class="o">=</span><span class="mi">10</span> <span class="c1"># number of years preceding the forecast to use as climatology (note: this is not the training period)</span>
+<span class="n">t_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">years_all</span><span class="o">==</span><span class="n">t</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="c1"># the index of years_all, and thus Y_all, corresponding to the forecast year</span>
+<span class="n">Y_clim</span> <span class="o">=</span> <span class="n">Y_all</span><span class="p">[</span><span class="n">t_idx</span><span class="o">-</span><span class="n">n_clim</span><span class="p">:</span><span class="n">t_idx</span><span class="p">]</span> <span class="c1"># observations for defining the climatology</span>
+</pre></div>
+</div>
+</div>
+<p>Now we have everything need to compute our forecast probabilities. By default the sample of climatological dates is fit to the DCNORM distribution to estimate the climatological terciles.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">result</span> <span class="o">=</span> <span class="n">fvc</span><span class="o">.</span><span class="n">event_probs</span><span class="p">(</span><span class="n">mu_t</span><span class="p">,</span> <span class="n">sigma_t</span><span class="p">,</span> <span class="n">Y_clim</span><span class="p">)</span>
+<span class="c1"># unpack result (forecast probabilities, climatological terciles, and climatological distribution parameters)</span>
+<span class="n">fcst_probs</span><span class="p">,</span> <span class="n">clim_terc</span><span class="p">,</span> <span class="n">clim_params</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">probs</span><span class="p">,</span> <span class="n">result</span><span class="o">.</span><span class="n">terciles</span><span class="p">,</span> <span class="n">result</span><span class="o">.</span><span class="n">params</span>
+</pre></div>
+</div>
+</div>
+<p>Finally, we’ll plot the calibrated forecast distribution and get a sense of how the forecast performed. For this, we’ll rely on the <code class="docutils literal notranslate"><span class="pre">dcnorm</span></code> module imported earlier:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="c1">#########################################################</span>
+<span class="c1">######################## PLOTTING #######################</span>
+<span class="c1">#########################################################</span>
+<span class="n">dcnorm</span> <span class="o">=</span> <span class="n">dcnorm_gen</span><span class="p">(</span><span class="n">a</span><span class="o">=</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span><span class="n">b</span><span class="p">)</span> <span class="c1"># instantiate instance of dcnorm_gen (the DCNORM distribution module) with given a and b</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">,</span><span class="mi">1000</span><span class="p">)</span> <span class="c1"># discretize the support</span>
+<span class="n">rv</span> <span class="o">=</span> <span class="n">dcnorm</span><span class="p">(</span><span class="n">mu_t</span><span class="p">,</span> <span class="n">sigma_t</span><span class="p">)</span> <span class="c1"># freeze DCNORM distribution object with calibrated distribution parameters</span>
+<span class="n">rv_c</span> <span class="o">=</span> <span class="n">dcnorm</span><span class="p">(</span><span class="n">clim_params</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">clim_params</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="c1">#  # freeze DCNORM distribution object with the climatology distribution parameters</span>
+
+<span class="n">event</span><span class="o">=</span><span class="s1">&#39;fud&#39;</span>
+
+<span class="c1"># A way to convert day-of-year dates to regular mm/dd for x-tick labelling in the plot</span>
+<span class="n">xticks</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">xticklabels</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">count</span> <span class="o">=</span> <span class="n">a</span>
+<span class="k">while</span> <span class="n">count</span><span class="o">&lt;</span><span class="n">b</span><span class="o">+</span><span class="mi">1</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">count</span><span class="o">==</span><span class="n">a</span><span class="p">:</span>
+        <span class="c1"># on first iteration, set to the initialization date</span>
+        <span class="n">date_curr</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">date</span><span class="p">(</span><span class="n">t</span><span class="p">,</span><span class="n">im</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span> <span class="c1"># create date object</span>
+        <span class="n">init_doy</span> <span class="o">=</span> <span class="n">si_time</span><span class="o">.</span><span class="n">date_to_doy</span><span class="p">(</span><span class="n">date_curr</span><span class="p">)</span> <span class="c1"># convert object to DOY</span>
+        <span class="n">xticks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">init_doy</span><span class="p">)</span>
+        <span class="n">xticklabels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">si_time</span><span class="o">.</span><span class="n">doy_to_date</span><span class="p">(</span><span class="n">init_doy</span><span class="p">))</span> <span class="c1"># convert DOY to mm/dd</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># otherwise convert to mm/dd if count is a DOY corresponding to the 1st of the month</span>
+        <span class="n">ddmm</span> <span class="o">=</span> <span class="n">si_time</span><span class="o">.</span><span class="n">doy_to_date</span><span class="p">(</span><span class="n">count</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ddmm</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">:]</span><span class="o">==</span><span class="s1">&#39;01&#39;</span><span class="p">:</span>
+            <span class="n">xticks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">count</span><span class="p">)</span>
+            <span class="n">xticklabels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ddmm</span><span class="p">)</span>
+
+    <span class="n">count</span><span class="o">+=</span><span class="mi">1</span>
+
+
+<span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span><span class="mi">4</span><span class="p">))</span>
+<span class="c1">######################## First plot the probability distribution for the raw forecast ################</span>
+<span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">121</span><span class="p">)</span>
+<span class="n">n</span><span class="p">,</span> <span class="n">bins</span><span class="p">,</span> <span class="n">patches</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">X_t</span><span class="p">,</span><span class="n">density</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="s1">&#39;k&#39;</span><span class="p">,</span>
+        <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span><span class="n">bins</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+
+<span class="c1"># plot climatological terciles as dashed lines</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">vlines</span><span class="p">(</span><span class="n">clim_terc</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="mf">0.0</span><span class="p">,</span><span class="nb">max</span><span class="p">(</span><span class="n">rv</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">+</span><span class="mf">0.05</span><span class="p">,</span><span class="n">rv_c</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">+</span><span class="mf">0.05</span><span class="p">),</span>
+          <span class="n">colors</span><span class="o">=</span><span class="s1">&#39;0.3&#39;</span><span class="p">,</span> <span class="n">linestyles</span><span class="o">=</span><span class="s1">&#39;--&#39;</span><span class="p">,</span> <span class="n">linewidths</span><span class="o">=</span><span class="mf">1.5</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">vlines</span><span class="p">(</span><span class="n">clim_terc</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="mf">0.0</span><span class="p">,</span><span class="nb">max</span><span class="p">(</span><span class="n">rv</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">+</span><span class="mf">0.05</span><span class="p">,</span><span class="n">rv_c</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">+</span><span class="mf">0.05</span><span class="p">),</span>
+          <span class="n">colors</span><span class="o">=</span><span class="s1">&#39;0.3&#39;</span><span class="p">,</span> <span class="n">linestyles</span><span class="o">=</span><span class="s1">&#39;--&#39;</span><span class="p">,</span> <span class="n">linewidths</span><span class="o">=</span><span class="mf">1.5</span><span class="p">)</span>
+
+<span class="n">idx</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="k">for</span> <span class="n">c</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">bins</span><span class="p">,</span> <span class="n">patches</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">c</span><span class="o">&lt;=</span><span class="n">clim_terc</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">setp</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="s1">&#39;facecolor&#39;</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">,</span><span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">c</span><span class="o">&gt;=</span><span class="n">clim_terc</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">setp</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="s1">&#39;facecolor&#39;</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">,</span><span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">setp</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="s1">&#39;facecolor&#39;</span><span class="p">,</span> <span class="s1">&#39;g&#39;</span><span class="p">,</span><span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+
+    <span class="n">idx</span><span class="o">+=</span><span class="mi">1</span>
+
+<span class="c1"># insert axes for bars showing probabilities</span>
+<span class="n">ax2</span> <span class="o">=</span> <span class="n">inset_axes</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span>
+                  <span class="n">height</span><span class="o">=</span><span class="s2">&quot;45%&quot;</span><span class="p">,</span> <span class="c1"># set height</span>
+                  <span class="n">width</span><span class="o">=</span><span class="s2">&quot;45%&quot;</span><span class="p">,</span> <span class="c1"># and width</span>
+                  <span class="n">bbox_to_anchor</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.95</span><span class="p">,</span><span class="mf">0.95</span><span class="p">),</span>
+                  <span class="n">axes_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;frame_on&#39;</span><span class="p">:</span><span class="kc">False</span><span class="p">},</span>
+                  <span class="n">bbox_transform</span><span class="o">=</span><span class="n">ax</span><span class="o">.</span><span class="n">transAxes</span><span class="p">)</span>
+<span class="n">center</span><span class="o">=</span><span class="mf">0.5</span>
+<span class="n">offset</span><span class="o">=</span><span class="mf">1.0</span>
+
+<span class="c1"># compute forecast probabilities for the raw ensemble</span>
+<span class="n">p_en_raw</span> <span class="o">=</span> <span class="n">dcnorm</span><span class="o">.</span><span class="n">ecdf</span><span class="p">(</span><span class="n">clim_terc</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">X_t</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">p_nn_raw</span> <span class="o">=</span> <span class="n">dcnorm</span><span class="o">.</span><span class="n">ecdf</span><span class="p">(</span><span class="n">clim_terc</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">X_t</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">p_en_raw</span>
+<span class="n">p_ln_raw</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">dcnorm</span><span class="o">.</span><span class="n">ecdf</span><span class="p">(</span><span class="n">clim_terc</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">X_t</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+<span class="c1"># creates a bar for each forecast probability in the inset axes</span>
+<span class="n">rect1</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">center</span><span class="o">-</span><span class="n">offset</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span><span class="n">p_en_raw</span> <span class="p">,</span><span class="mf">0.4</span><span class="p">,</span> <span class="n">fc</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span><span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+<span class="n">rect2</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">center</span><span class="p">,</span><span class="n">p_nn_raw</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">,</span> <span class="n">fc</span><span class="o">=</span><span class="s1">&#39;g&#39;</span><span class="p">,</span><span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+<span class="n">rect3</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">center</span><span class="o">+</span><span class="n">offset</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span><span class="n">p_ln_raw</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">,</span> <span class="n">fc</span><span class="o">=</span><span class="s1">&#39;b&#39;</span><span class="p">,</span><span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xticks</span><span class="p">([</span><span class="n">center</span><span class="o">-</span><span class="n">offset</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span><span class="n">center</span><span class="p">,</span><span class="n">center</span><span class="o">+</span><span class="n">offset</span><span class="o">/</span><span class="mi">2</span><span class="p">])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">yticks</span><span class="p">([])</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="s1">&#39;E&#39;</span><span class="p">,</span><span class="s1">&#39;N&#39;</span><span class="p">,</span><span class="s1">&#39;L&#39;</span><span class="p">]))</span>
+
+<span class="n">ax2</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">center</span><span class="o">-</span><span class="n">offset</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="n">p_en_raw</span><span class="o">+</span><span class="mf">0.01</span><span class="p">,</span><span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">p_en_raw</span><span class="o">*</span><span class="mi">100</span><span class="p">,</span><span class="mi">0</span><span class="p">)))</span><span class="o">+</span><span class="s1">&#39;%&#39;</span><span class="p">,</span>
+       <span class="n">fontsize</span><span class="o">=</span><span class="mi">11</span><span class="p">,</span> <span class="n">ha</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span><span class="n">fontweight</span><span class="o">=</span><span class="s1">&#39;semibold&#39;</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">center</span><span class="p">,</span> <span class="n">p_nn_raw</span><span class="o">+</span><span class="mf">0.01</span><span class="p">,</span><span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">p_nn_raw</span><span class="o">*</span><span class="mi">100</span><span class="p">,</span><span class="mi">0</span><span class="p">)))</span><span class="o">+</span><span class="s1">&#39;%&#39;</span><span class="p">,</span>
+       <span class="n">fontsize</span><span class="o">=</span><span class="mi">11</span><span class="p">,</span> <span class="n">ha</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span><span class="n">fontweight</span><span class="o">=</span><span class="s1">&#39;semibold&#39;</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">center</span><span class="o">+</span><span class="n">offset</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="n">p_ln_raw</span><span class="o">+</span><span class="mf">0.01</span><span class="p">,</span><span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">p_ln_raw</span><span class="o">*</span><span class="mi">100</span><span class="p">,</span><span class="mi">0</span><span class="p">)))</span><span class="o">+</span><span class="s1">&#39;%&#39;</span><span class="p">,</span>
+       <span class="n">fontsize</span><span class="o">=</span><span class="mi">11</span><span class="p">,</span> <span class="n">ha</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span><span class="n">fontweight</span><span class="o">=</span><span class="s1">&#39;semibold&#39;</span><span class="p">)</span>
+
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">((</span><span class="n">a</span><span class="o">-</span><span class="mf">10.</span><span class="p">,</span><span class="n">b</span><span class="o">+</span><span class="mi">5</span><span class="p">))</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">((</span><span class="mf">0.0</span><span class="p">,</span><span class="n">rv</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">+</span><span class="mf">0.05</span><span class="p">))</span>
+
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">(</span><span class="n">xticks</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">(</span><span class="n">xticklabels</span><span class="p">,</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">11</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_yticklabels</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span><span class="n">rv</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">+</span><span class="mf">0.05</span><span class="p">,</span><span class="mf">0.01</span><span class="p">),</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">11</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Probability density&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">13</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Freeze-up date&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">13</span><span class="p">)</span>
+
+<span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Raw &#39;</span><span class="o">+</span><span class="n">event</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span><span class="o">+</span><span class="s1">&#39; forecast from &#39;</span><span class="o">+</span><span class="s2">&quot;</span><span class="si">%02d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">im</span><span class="o">+</span><span class="s1">&#39;/01/&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">t</span><span class="p">))</span><span class="o">+</span>
+             <span class="s1">&#39; </span><span class="se">\n</span><span class="s1"> E=Early, N=Near-normal, L=Late </span><span class="se">\n</span><span class="s1"> relative to &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">t</span><span class="o">-</span><span class="n">n_clim</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;-&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">t</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">+</span>
+             <span class="s1">&#39; climatology&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
+
+
+
+<span class="c1">######### Now plot the probability distribution for the calibrated for the calibrated forecast #######</span>
+<span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">122</span><span class="p">)</span>
+<span class="c1"># plot the climatological distribution first</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">rv_c</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;0.5&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="c1"># now plot end-dates if probability exists for pre/non occurence of the event</span>
+<span class="k">if</span> <span class="n">rv_c</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">&gt;</span><span class="mf">1e-4</span><span class="p">:</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">rv_c</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;0.5&#39;</span><span class="p">,</span> <span class="n">ms</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">rv_c</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span><span class="o">&gt;</span><span class="mf">1e-4</span><span class="p">:</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">rv_c</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span> <span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;0.5&#39;</span><span class="p">,</span> <span class="n">ms</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+
+<span class="c1"># plot main forecast pdf curve (but exclude end-dates)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">rv</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span> <span class="s1">&#39;k&#39;</span><span class="p">,</span><span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="c1"># now plot end-dates if probability exists for pre/non occurence of the event</span>
+<span class="k">if</span> <span class="n">rv</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">&gt;</span><span class="mf">1e-4</span><span class="p">:</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">rv</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="s1">&#39;ko&#39;</span><span class="p">,</span> <span class="n">ms</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">rv</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span><span class="o">&gt;</span><span class="mf">1e-4</span><span class="p">:</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">rv</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span> <span class="s1">&#39;ko&#39;</span><span class="p">,</span> <span class="n">ms</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+
+<span class="c1"># fill colors under the forecast pdf according to each category</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">x</span><span class="o">&lt;</span><span class="n">clim_terc</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">rv</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">x</span><span class="o">&lt;</span><span class="n">clim_terc</span><span class="p">[</span><span class="mi">0</span><span class="p">]]),</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+
+<span class="n">ax</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span><span class="n">x</span><span class="p">[(</span><span class="n">x</span><span class="o">&gt;</span><span class="n">clim_terc</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">&amp;</span><span class="p">(</span><span class="n">x</span><span class="o">&lt;</span><span class="n">clim_terc</span><span class="p">[</span><span class="mi">1</span><span class="p">])],</span> <span class="mf">0.0</span><span class="p">,</span>
+                  <span class="n">rv</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">x</span><span class="p">[(</span><span class="n">x</span><span class="o">&gt;</span><span class="n">clim_terc</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">&amp;</span><span class="p">(</span><span class="n">x</span><span class="o">&lt;</span><span class="n">clim_terc</span><span class="p">[</span><span class="mi">1</span><span class="p">])]),</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+
+<span class="n">ax</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">x</span><span class="o">&gt;</span><span class="n">clim_terc</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">rv</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">x</span><span class="o">&gt;</span><span class="n">clim_terc</span><span class="p">[</span><span class="mi">1</span><span class="p">]]),</span><span class="n">color</span><span class="o">=</span><span class="s1">&#39;b&#39;</span><span class="p">,</span><span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+
+<span class="c1"># plot climatological terciles as dashed lines</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">vlines</span><span class="p">(</span><span class="n">clim_terc</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="mf">0.0</span><span class="p">,</span><span class="nb">max</span><span class="p">(</span><span class="n">rv</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">+</span><span class="mf">0.05</span><span class="p">,</span><span class="n">rv_c</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">+</span><span class="mf">0.05</span><span class="p">),</span>
+          <span class="n">colors</span><span class="o">=</span><span class="s1">&#39;0.3&#39;</span><span class="p">,</span> <span class="n">linestyles</span><span class="o">=</span><span class="s1">&#39;--&#39;</span><span class="p">,</span> <span class="n">linewidths</span><span class="o">=</span><span class="mf">1.5</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">vlines</span><span class="p">(</span><span class="n">clim_terc</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="mf">0.0</span><span class="p">,</span><span class="nb">max</span><span class="p">(</span><span class="n">rv</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">+</span><span class="mf">0.05</span><span class="p">,</span><span class="n">rv_c</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">+</span><span class="mf">0.05</span><span class="p">),</span>
+          <span class="n">colors</span><span class="o">=</span><span class="s1">&#39;0.3&#39;</span><span class="p">,</span> <span class="n">linestyles</span><span class="o">=</span><span class="s1">&#39;--&#39;</span><span class="p">,</span> <span class="n">linewidths</span><span class="o">=</span><span class="mf">1.5</span><span class="p">)</span>
+
+<span class="c1"># insert axis for bars showing probabilities</span>
+<span class="n">ax2</span> <span class="o">=</span> <span class="n">inset_axes</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span>
+                  <span class="n">height</span><span class="o">=</span><span class="s2">&quot;45%&quot;</span><span class="p">,</span> <span class="c1"># set height</span>
+                  <span class="n">width</span><span class="o">=</span><span class="s2">&quot;45%&quot;</span><span class="p">,</span> <span class="c1"># and width</span>
+                  <span class="n">bbox_to_anchor</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.95</span><span class="p">,</span><span class="mf">0.95</span><span class="p">),</span>
+                  <span class="n">axes_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;frame_on&#39;</span><span class="p">:</span><span class="kc">False</span><span class="p">},</span>
+                  <span class="n">bbox_transform</span><span class="o">=</span><span class="n">ax</span><span class="o">.</span><span class="n">transAxes</span><span class="p">)</span>
+
+<span class="n">center</span><span class="o">=</span><span class="mf">0.5</span>
+<span class="n">offset</span><span class="o">=</span><span class="mf">1.0</span>
+
+<span class="c1"># plot bars showing probabilities</span>
+<span class="n">p_en_ncgr</span><span class="p">,</span> <span class="n">p_nn_ncgr</span><span class="p">,</span> <span class="n">p_ln_ncgr</span> <span class="o">=</span> <span class="n">fcst_probs</span>
+
+<span class="n">rect1</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">center</span><span class="o">-</span><span class="n">offset</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="n">p_en_ncgr</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">,</span> <span class="n">fc</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span><span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+<span class="n">rect2</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">center</span><span class="p">,</span> <span class="n">p_nn_ncgr</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">,</span> <span class="n">fc</span><span class="o">=</span><span class="s1">&#39;g&#39;</span><span class="p">,</span><span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+<span class="n">rect3</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">center</span><span class="o">+</span><span class="n">offset</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="n">fcst_probs</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="mf">0.4</span><span class="p">,</span> <span class="n">fc</span><span class="o">=</span><span class="s1">&#39;b&#39;</span><span class="p">,</span><span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+
+
+<span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xticks</span><span class="p">([</span><span class="n">center</span><span class="o">-</span><span class="n">offset</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span><span class="n">center</span><span class="p">,</span><span class="n">center</span><span class="o">+</span><span class="n">offset</span><span class="o">/</span><span class="mi">2</span><span class="p">])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">yticks</span><span class="p">([])</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="s1">&#39;E&#39;</span><span class="p">,</span><span class="s1">&#39;N&#39;</span><span class="p">,</span><span class="s1">&#39;L&#39;</span><span class="p">]),</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+
+<span class="n">ax2</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">center</span><span class="o">-</span><span class="n">offset</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="n">p_en_ncgr</span><span class="o">+</span><span class="mf">0.01</span><span class="p">,</span><span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">p_en_ncgr</span><span class="o">*</span><span class="mi">100</span><span class="p">,</span><span class="mi">0</span><span class="p">)))</span><span class="o">+</span><span class="s1">&#39;%&#39;</span><span class="p">,</span>
+         <span class="n">fontsize</span><span class="o">=</span><span class="mi">11</span><span class="p">,</span> <span class="n">ha</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span><span class="n">fontweight</span><span class="o">=</span><span class="s1">&#39;semibold&#39;</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">center</span><span class="p">,</span> <span class="n">p_nn_ncgr</span><span class="o">+</span><span class="mf">0.01</span><span class="p">,</span><span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">p_nn_ncgr</span><span class="o">*</span><span class="mi">100</span><span class="p">,</span><span class="mi">0</span><span class="p">)))</span><span class="o">+</span><span class="s1">&#39;%&#39;</span><span class="p">,</span>
+         <span class="n">fontsize</span><span class="o">=</span><span class="mi">11</span><span class="p">,</span> <span class="n">ha</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span><span class="n">fontweight</span><span class="o">=</span><span class="s1">&#39;semibold&#39;</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">center</span><span class="o">+</span><span class="n">offset</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="n">p_ln_ncgr</span><span class="o">+</span><span class="mf">0.01</span><span class="p">,</span><span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">p_ln_ncgr</span><span class="o">*</span><span class="mi">100</span><span class="p">,</span><span class="mi">0</span><span class="p">)))</span><span class="o">+</span><span class="s1">&#39;%&#39;</span><span class="p">,</span>
+         <span class="n">fontsize</span><span class="o">=</span><span class="mi">11</span><span class="p">,</span> <span class="n">ha</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span><span class="n">fontweight</span><span class="o">=</span><span class="s1">&#39;semibold&#39;</span><span class="p">)</span>
+
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">((</span><span class="n">a</span><span class="o">-</span><span class="mf">10.</span><span class="p">,</span><span class="n">b</span><span class="o">+</span><span class="mi">5</span><span class="p">))</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">((</span><span class="mf">0.0</span><span class="p">,</span><span class="nb">max</span><span class="p">(</span><span class="n">rv</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">+</span><span class="mf">0.05</span><span class="p">,</span><span class="n">rv_c</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">+</span><span class="mf">0.05</span><span class="p">)))</span>
+
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">(</span><span class="n">xticks</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">(</span><span class="n">xticklabels</span><span class="p">,</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">11</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_yticklabels</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span><span class="n">rv</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">+</span><span class="mf">0.05</span><span class="p">,</span><span class="mf">0.01</span><span class="p">),</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">11</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Probability density&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">13</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Freeze-up date&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">13</span><span class="p">)</span>
+
+<span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Calibrated &#39;</span><span class="o">+</span><span class="n">event</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span><span class="o">+</span><span class="s1">&#39; forecast from &#39;</span><span class="o">+</span><span class="s2">&quot;</span><span class="si">%02d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">im</span><span class="o">+</span><span class="s1">&#39;/01/&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">t</span><span class="p">))</span><span class="o">+</span>
+             <span class="s1">&#39; </span><span class="se">\n</span><span class="s1"> E=Early, N=Near-normal, L=Late </span><span class="se">\n</span><span class="s1"> relative to &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">t</span><span class="o">-</span><span class="n">n_clim</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;-&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">t</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">+</span>
+             <span class="s1">&#39; climatology&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
+
+<span class="n">fig</span><span class="o">.</span><span class="n">subplots_adjust</span><span class="p">(</span><span class="n">top</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">bottom</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">left</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="mf">0.99</span><span class="p">,</span> <span class="n">wspace</span><span class="o">=</span><span class="mf">0.2</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Observed date:&quot;</span><span class="p">,</span> <span class="n">si_time</span><span class="o">.</span><span class="n">doy_to_date</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">Y_t</span><span class="p">)))</span>
+<span class="k">if</span> <span class="n">Y_t</span><span class="o">&lt;=</span><span class="n">clim_terc</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+    <span class="n">p_en_obs</span> <span class="o">=</span> <span class="mf">1.0</span>
+    <span class="n">p_nn_obs</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">p_ln_obs</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Observed category: Earlier than normal&quot;</span><span class="p">)</span>
+<span class="k">elif</span> <span class="p">(</span><span class="n">Y_t</span><span class="o">&gt;</span><span class="n">clim_terc</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">&amp;</span><span class="p">(</span><span class="n">Y_t</span><span class="o">&lt;=</span><span class="n">clim_terc</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+    <span class="n">p_en_obs</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">p_nn_obs</span> <span class="o">=</span> <span class="mf">1.0</span>
+    <span class="n">p_ln_obs</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Observed category: Near normal&quot;</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">p_en_obs</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">p_nn_obs</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">p_ln_obs</span> <span class="o">=</span> <span class="mf">1.0</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Observed category: Later than normal&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/Examples_NCGR_gridpoint_example_31_0.png" src="../_images/Examples_NCGR_gridpoint_example_31_0.png" />
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Observed date: 01/17
+Observed category: Later than normal
+</pre></div></div>
+</div>
+<p>To compute the CRPS for the raw forecast, we’ll use the <code class="docutils literal notranslate"><span class="pre">dcnorm.ecdf()</span></code> function, and for the calibrated forecast we’ll use the <code class="docutils literal notranslate"><span class="pre">dcnorm.cdf()</span></code> function:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">crps_raw</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">trapz</span><span class="p">((</span><span class="n">dcnorm</span><span class="o">.</span><span class="n">ecdf</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">X_t</span><span class="p">)</span> <span class="o">-</span> <span class="n">dcnorm</span><span class="o">.</span><span class="n">ecdf</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">Y_t</span><span class="p">))</span><span class="o">**</span><span class="mf">2.</span><span class="p">,</span><span class="n">x</span><span class="p">)</span>
+<span class="n">crps_ncgr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">trapz</span><span class="p">((</span><span class="n">rv</span><span class="o">.</span><span class="n">cdf</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">-</span> <span class="n">dcnorm</span><span class="o">.</span><span class="n">ecdf</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">Y_t</span><span class="p">))</span><span class="o">**</span><span class="mf">2.</span><span class="p">,</span><span class="n">x</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;CRPS (raw) =&quot;</span><span class="p">,</span><span class="n">crps_raw</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;CRPS (NCGR, approximate) =&quot;</span><span class="p">,</span><span class="n">crps_ncgr</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+CRPS (raw) = 75.88238238238236
+CRPS (NCGR, approximate) = 13.487902217819506
+</pre></div></div>
+</div>
+<p>Note that we can also compute the CRPS for the calibrated forecast using the analytic expression for the CRPS with the NCGR library using the following:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">crps_funcs</span> <span class="o">=</span> <span class="n">ncgr</span><span class="o">.</span><span class="n">crps_funcs</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">)</span> <span class="c1"># instantiate instance of ``ncgr.crps_funcs``</span>
+<span class="n">crps_ncgr_true</span> <span class="o">=</span> <span class="n">crps_funcs</span><span class="o">.</span><span class="n">crps_dcnorm_single</span><span class="p">(</span><span class="n">Y_t</span><span class="p">,</span> <span class="n">mu_t</span><span class="p">,</span> <span class="n">sigma_t</span><span class="p">)</span> <span class="c1"># ``crps_dcnorm_single`` is used to compute CRPS for a single forecast</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;CRPS (NCGR, analytic) =&quot;</span><span class="p">,</span><span class="n">crps_ncgr_true</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+CRPS (NCGR, analytic) = 13.442205531634983
+</pre></div></div>
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">sea-ice-timing</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="NCGR_fullfield_example.html">Performing NCGR on a full forecast field</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="NCGR_fullfield_example.html">Performing NCGR on a full forecast field</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Performing NCGR at a gridpoint</a></li>
+<li class="toctree-l1"><a class="reference internal" href="DCNORM_distribution_example.html">Using the dcnorm module</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../code_ncgr.html">NCGR</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="NCGR_fullfield_example.html" title="previous chapter">Performing NCGR on a full forecast field</a></li>
+      <li>Next: <a href="DCNORM_distribution_example.html" title="next chapter">Using the dcnorm module</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Arlan Dirkson.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/Examples/NCGR_gridpoint_example.ipynb.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>NCGR &#8212; sea-ice-timing 1.0.0 documentation</title>
+    <title>NCGR &#8212; sea-ice-timing 1.0.2 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -42,58 +42,138 @@
 <p>&#64;author: arlan</p>
 <dl class="class">
 <dt id="ncgr.ncgr_fullfield">
-<em class="property">class </em><code class="sig-prename descclassname">ncgr.</code><code class="sig-name descname">ncgr_fullfield</code><span class="sig-paren">(</span><em class="sig-param">hc_netcdf</em>, <em class="sig-param">obs_netcdf</em>, <em class="sig-param">fcst_netcdf</em>, <em class="sig-param">out_netcdf</em>, <em class="sig-param">event</em>, <em class="sig-param">a</em>, <em class="sig-param">b</em>, <em class="sig-param">clim_netcdf=None</em>, <em class="sig-param">terc_interp=None</em>, <em class="sig-param">sigma_eqn='s3'</em>, <em class="sig-param">es_tol=0.001</em>, <em class="sig-param">pred_pval=0.05</em>, <em class="sig-param">disp=False</em><span class="sig-paren">)</span><a class="headerlink" href="#ncgr.ncgr_fullfield" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">ncgr.</code><code class="sig-name descname">ncgr_fullfield</code><span class="sig-paren">(</span><em class="sig-param">fcst_netcdf</em>, <em class="sig-param">hc_netcdf</em>, <em class="sig-param">obs_netcdf</em>, <em class="sig-param">out_netcdf</em>, <em class="sig-param">a</em>, <em class="sig-param">b</em>, <em class="sig-param">model_dict</em>, <em class="sig-param">obs_dict</em>, <em class="sig-param">clim_netcdf=None</em>, <em class="sig-param">terc_interp=None</em>, <em class="sig-param">sigma_eqn='s3'</em>, <em class="sig-param">es_tol=0.05</em>, <em class="sig-param">pred_pval=0.05</em>, <em class="sig-param">options=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ncgr.ncgr_fullfield" title="Permalink to this definition">¶</a></dt>
 <dd><ul class="simple">
-<li><p>See &lt;url&gt; for an example and for a description of the NetCDF files used as inputs.</p></li>
 <li><p>Performs non-homogeneous censored gaussian regression (NCGR) [1]
-on a forecast ice-free date (IFD) or freeze-up date (FUD) field.</p></li>
-<li><p>An output NetCDF file is created that contains several quantities relevant to calibration,
-including the probability fields for each of the early, normal, and late IFD/FUD  
-categories.</p></li>
+on a forecast ice-free date (IFD) or freeze-up date (FUD) field using input
+NetCDF files.</p></li>
+<li><p>An output NetCDF file is created that contains several quantities relevant to calibration.</p></li>
 </ul>
 <dl>
 <dt>Args:</dt><dd><dl>
-<dt>hc_netcdf (str):</dt><dd><p>‘~/filename.nc’ points to the path of the NetCDF file
-containing the model hindcast IFD or FUD fields to be used for training NCGR. 
-This file should contain several years of ensemble IFD or FUD hindcast fields
-for a single start date.</p>
+<dt>fcst_netcdf (str):</dt><dd><p>Path of the NetCDF file containing the ensemble forecast IFDs or FUDs to be calibrated. 
+Requirements for the file are as follows:</p>
+<ul class="simple">
+<li><p>The structure/shape of the IFD/FUD variable should be: 
+(time, ensemble members, latitude, longitude), although the actual names of those dimensions 
+and corresponding variables (if they are included in the NetCDF files) can be anything.</p></li>
+<li><p>Relevant variable names and dimension names are to be specified by the user with the 
+<code class="docutils literal notranslate"><span class="pre">model_dict</span></code> argument provided to this function.</p></li>
+<li><p>The variable for the time coordinate, which should represent the forecast initialization date,
+should follow CF conventions (<a class="reference external" href="https://cfconventions.org/">https://cfconventions.org/</a>).
+In particular, it’s necessary for the initialization year be retrievable from the time 
+variable using the <code class="xref py py-meth docutils literal notranslate"><span class="pre">netCDF4.num2date()</span></code> function (<a class="reference external" href="https://unidata.github.io/netcdf4-python/netCDF4/index.html">https://unidata.github.io/netcdf4-python/netCDF4/index.html</a>).</p></li>
+<li><p>Masked locations will be ignored in calibration and will be written as masked locations
+in the output NetCDF file.</p></li>
+</ul>
 </dd>
-<dt>obs_netcdf (str):</dt><dd><p>‘~/filename.nc’ points to the path of the NetCDF file
-containing the observed IFD or FUD fields to be used for training NCGR. 
-This file should contain several years of observed IFD or FUD fields corresponding
-to those being forecast in the <code class="docutils literal notranslate"><span class="pre">hc_netcdf</span></code> file argument. Note the conventions for
-assigning end-dates to the forecasts must also be assigned to the observations.</p>
+<dt>hc_netcdf (str):</dt><dd><p>Path of the NetCDF file
+containing the model ensemble forecast IFDs or FUDs used to train NCGR. This file should
+contain several years of model re-forecasts (hindcasts), and may in fact include data for years after the 
+year of the forecast being calibrated (e.g. if leave-one-out cross-validation is being performed).
+The requirements for the file are the same as for <code class="docutils literal notranslate"><span class="pre">fcst_netcdf</span></code>, except that the variable corresponding
+to the time coordinate should contain several dates (i.e. the initialization date for each forecast).</p>
 </dd>
-<dt>fcst_netcdf (str):</dt><dd><p>‘~/filename.nc’ points to the path of the NetCDF file
-containing the forecast IFD or FUD field to be calibrated. 
-This file should contain an ensemble IFD or FUD forecast field
-for a single start date.</p>
+<dt>obs_netcdf (str):</dt><dd><p>Path of the NetCDF file
+containing the observed IFDs or FUDs used to train NCGR. This file should
+contain several years of observed IFDs/FUDs (corresponding to what was verified for
+the model hindcasts in <code class="docutils literal notranslate"><span class="pre">hc_netcdf</span></code>). Requirements for the file are as follows:</p>
+<ul class="simple">
+<li><p>Relevant variable names and dimension names are to be specified by the user with the 
+<code class="docutils literal notranslate"><span class="pre">obs_dict</span></code> argument provided to this function.</p></li>
+<li><p>The structure/shape of the IFD/FUD variable should be: 
+(time, latitude, longitude), although the actual names of those dimensions 
+and corresponding variables (if they are included in the NetCDF files) can be anything.</p></li>
+<li><p>The variable for the time coordinate, which should represent the initialization dates of the re-forecasts
+in <code class="docutils literal notranslate"><span class="pre">hc_netcdf</span></code>, should follow CF conventions (<a class="reference external" href="https://cfconventions.org/">https://cfconventions.org/</a>).
+In particular, it’s necessary for the initialization year be retrievable from the time 
+variable using the <code class="xref py py-meth docutils literal notranslate"><span class="pre">netCDF4.num2date()</span></code> function (<a class="reference external" href="https://unidata.github.io/netcdf4-python/netCDF4/index.html">https://unidata.github.io/netcdf4-python/netCDF4/index.html</a>).</p></li>
+<li><p>Masked locations will be ignored in calibration and will be written as masked locations
+in the output NetCDF file.</p></li>
+</ul>
 </dd>
-<dt>out_netcdf (str):</dt><dd><p>‘~/filename.nc’ a NetCDF file will containing relevant outputs will
-be written here.</p>
+<dt>out_netcdf (str):</dt><dd><p>The absolute path of the NetCDF file to
+be written that contains relevant calibrated forecast quantities. For more information on this file
+see <a class="reference internal" href="#ncgr.ncgr_fullfield.write_output" title="ncgr.ncgr_fullfield.write_output"><code class="xref py py-meth docutils literal notranslate"><span class="pre">ncgr_fullfield.write_output()</span></code></a>.</p>
 </dd>
-<dt>event (str): </dt><dd><p>Can be either ‘ifd’ for an ice-free date forecast, or ‘fud’ for
-a freeze-up date forecast. This should match the variable name in
-all NetCDF files for the date values provided.</p>
+<dt>a (float or int):</dt><dd><p>Minimum possible date for the event in 
+day-of-year units; e.g. 1=Jan 1, 91=April 1, 365=Dec 31). See definition 
+in [1]. IFDs or FUDs provided in input NetCDF files should be
+set to the value provided to <code class="docutils literal notranslate"><span class="pre">a</span></code> when the event has occurred at the time
+of forecast initialization.</p>
 </dd>
-<dt>a (float or int):</dt><dd><p>Minimum possible date for the event in non leap year
-day-of-year units; e.g. 1=Jan 1, 91=April 1, 365=Dec 31). A value
-larger than 365 is regarded as a date for the following year.</p>
+<dt>b (float or int):</dt><dd><p>Maximum possible date for the event in 
+day-of-year units; e.g. 1=Jan 1, 91=April 1, 365=Dec 31). See definition 
+in [1]. IFDs or FUDs provided in input NetCDF files should be
+set to the value provided to <code class="docutils literal notranslate"><span class="pre">b</span></code> when the event does not occur by the end
+of the season.</p>
 </dd>
-<dt>b (float or int):</dt><dd><p>Maximum possible date for the event in non leap year 
-day-of-year units; e.g. 1=Jan 1, 91=April 1, 365=Dec 31). A value
-larger than 365 is regarded as a date for the following year. The 
-<code class="docutils literal notranslate"><span class="pre">b</span></code> argument must be larger than the <code class="docutils literal notranslate"><span class="pre">a</span></code> argument.</p>
+<dt>model_dict (tuple(dict,dict)):</dt><dd><p>A tuple of two dictionaries. The first specifies the
+relevant variables in the NetCDF files 
+assigned to <code class="docutils literal notranslate"><span class="pre">fcst_netcdf</span></code> and <code class="docutils literal notranslate"><span class="pre">hc_netcdf</span></code>. The second specifies the
+relevant demension names in those same files</p>
+<p>For the first dictionary, its keys (which must follow the naming conventions used below) 
+and values (specified by user) are:</p>
+<blockquote>
+<div><p>‘event_vn’: <code class="docutils literal notranslate"><span class="pre">str</span></code>: Variable name for the ice-free date or freeze-up date field(s)</p>
+<p>‘time_vn’: <code class="docutils literal notranslate"><span class="pre">str</span></code>: Variable name for the forecast initialization date</p>
+</div></blockquote>
+<p>For the second dictionary, its keys (which must follow the naming conventions used below) 
+and values (specified by user) are:</p>
+<blockquote>
+<div><p>‘time_dn’: <code class="docutils literal notranslate"><span class="pre">str</span></code>: Dimension name for the forecast initialization date</p>
+<p>‘ens_dn’: <code class="docutils literal notranslate"><span class="pre">str</span></code>: Dimension name for the forecast realization/ensemble member</p>
+</div></blockquote>
+<dl>
+<dt>Example:</dt><dd><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">model_dict</span> <span class="o">=</span> <span class="p">({</span><span class="s1">&#39;event_vn&#39;</span> <span class="p">:</span> <span class="s1">&#39;ifd&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;time_vn&#39;</span> <span class="p">:</span> <span class="s1">&#39;time&#39;</span><span class="p">},</span>
+              <span class="p">{</span><span class="s1">&#39;time_dn&#39;</span> <span class="p">:</span> <span class="s1">&#39;time&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;ens_dn&#39;</span> <span class="p">:</span> <span class="s1">&#39;ensemble&#39;</span><span class="p">})</span>
+</pre></div>
+</div>
 </dd>
-<dt>clim_netcdf (str, optional):</dt><dd><p>‘&lt;directory&gt;/&lt;filename.nc&gt;’ pointing to the climatology NetCDF file.
-If this is included, forecast probabilities and anomalies are 
-computed and included when writing the <code class="docutils literal notranslate"><span class="pre">out_netcdf</span></code> file.</p>
+</dl>
 </dd>
-<dt>terc_interp (str or None):</dt><dd><p>Interpolation scheme used to compute the terciles for the observed climatology.
+<dt>obs_dict (tuple(dict,dict)):</dt><dd><p>A tuple of two dictionaries. The first specifies the
+relevant variables in the NetCDF file
+assigned to <code class="docutils literal notranslate"><span class="pre">obs_netcdf</span></code>. The second specifies the
+relevant demension names in that same file.</p>
+<p>For the first dictionary, its keys (which must follow the naming conventions used below) 
+and values (specified by user) are:</p>
+<blockquote>
+<div><p>‘event_vn’: <code class="docutils literal notranslate"><span class="pre">str</span></code>: Variable name for ice-free date or freeze-up date field(s)</p>
+<p>‘time_vn’: <code class="docutils literal notranslate"><span class="pre">str</span></code>: Variable name for the forecast initialization date</p>
+</div></blockquote>
+<p>For the second dictionary, its keys (which must follow the naming conventions used below) 
+and values (specified by user) are:</p>
+<blockquote>
+<div><p>‘time_dn’: <code class="docutils literal notranslate"><span class="pre">str</span></code>: Dimension name for the forecast initialization date</p>
+</div></blockquote>
+<dl>
+<dt>Example:</dt><dd><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">obs_dict</span> <span class="o">=</span> <span class="p">({</span><span class="s1">&#39;event_vn&#39;</span> <span class="p">:</span> <span class="s1">&#39;ifd&#39;</span><span class="p">,</span> 
+               <span class="s1">&#39;time_vn&#39;</span> <span class="p">:</span> <span class="s1">&#39;time&#39;</span><span class="p">},</span>
+              <span class="p">{</span><span class="s1">&#39;time_dn&#39;</span> <span class="p">:</span> <span class="s1">&#39;time&#39;</span><span class="p">})</span> 
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd>
+<dt>clim_netcdf (str, optional):</dt><dd><p>The absolute path of the NetCDF file that contains several years of observed IFDs or FUDs
+used to construct the climatology that forecast IFDs/FUDs will be in
+reference to. If this is included, forecast probabilities for each the 
+early, near-normal, and late events, as well as ensemble-mean anomalies are 
+included in the <code class="docutils literal notranslate"><span class="pre">out_netcdf</span></code> file. Requirements for this file are the same as those
+for <code class="docutils literal notranslate"><span class="pre">obs_netcdf</span></code>.</p>
+</dd>
+<dt>terc_interp (str or None, optional):</dt><dd><p>Interpolation scheme used to compute the terciles for the observed climatology. Default is None.
 Can be one of the following:</p>
 <blockquote>
 <div><ul class="simple">
-<li><p>None: By default, terciles are estimated using the Harrell-Davis estimator (see :py:class:scipy.stats.mstats.hdquantiles)</p></li>
+<li><p>None: By default y_clim data are fit to the DCNORM distribution,</p></li>
+</ul>
+<p>and terciles are computed using its <code class="xref py py-meth docutils literal notranslate"><span class="pre">_ppf()</span></code> method.</p>
+<ul class="simple">
+<li><p>‘HD’: Estimate terciles using the Harrell-Davis estimator (see :py:class:scipy.stats.mstats.hdquantiles)</p></li>
 <li><p>‘nearest-rank’: Nearest rank or rank order method (see</p></li>
 </ul>
 <p><a class="reference external" href="https://en.wikipedia.org/wiki/Percentile#The_nearest-rank_method">https://en.wikipedia.org/wiki/Percentile#The_nearest-rank_method</a>)</p>
@@ -106,18 +186,18 @@ Can be one of the following:</p>
 parameter in the NCGR model. This can be one of ‘s1’, ‘s2’, or ‘s3’.
 These are defined by the regression equations below as <span class="math notranslate nohighlight">\(\sigma_{I}\)</span>,
 <span class="math notranslate nohighlight">\(\sigma_{II}\)</span>, and <span class="math notranslate nohighlight">\(\sigma_{III}\)</span>, respectively. By default,
-<code class="docutils literal notranslate"><span class="pre">sigma</span></code> is set to <code class="docutils literal notranslate"><span class="pre">'s3'</span></code>.</p>
+<code class="docutils literal notranslate"><span class="pre">sigma_eqn='s3'</span></code> (i.e. <span class="math notranslate nohighlight">\(\sigma_{III}\)</span>).</p>
 </dd>
 <dt>es_tol (float or None, optional):</dt><dd><p>Early stopping threshold used for minimizing the CRPS. 
-By default <code class="docutils literal notranslate"><span class="pre">es_tol</span></code> is set to <code class="docutils literal notranslate"><span class="pre">0.001</span></code>. Specificlaly, this argument
+By default <code class="docutils literal notranslate"><span class="pre">es_tol=0.05</span></code>. Specifically, this argument
 sets the <code class="docutils literal notranslate"><span class="pre">tol</span></code> argument in <code class="xref py py-class docutils literal notranslate"><span class="pre">scipy.optimize.minimize(method=’SLSQP’)</span></code>.</p>
 </dd>
 <dt>pred_pval (float, optional):</dt><dd><p>The p-value for determining statistical significance of the second 
 predictor for the  <span class="math notranslate nohighlight">\(\sigma_{II}\)</span> or <span class="math notranslate nohighlight">\(\sigma_{III}\)</span>
-regression equations. By default, <code class="docutils literal notranslate"><span class="pre">pred_pval</span></code> is set to <code class="docutils literal notranslate"><span class="pre">0.05</span></code>.</p>
+regression equations. By default, <code class="docutils literal notranslate"><span class="pre">pred_pval=0.05</span></code>.</p>
 </dd>
-<dt>disp (True or False, optional):</dt><dd><p>Set to True to display the numerical optimization message. By default,
-<code class="docutils literal notranslate"><span class="pre">disp</span></code> is set to <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p>
+<dt>options (dict, optional): </dt><dd><p>A dictionary of options to pass to :py:method:’scipy.optimize.minimize’ corresponding to 
+its <code class="docutils literal notranslate"><span class="pre">options</span></code> argument (see <code class="xref py py-class docutils literal notranslate"><span class="pre">scipy.optimize.minimize(method=’SLSQP’)</span></code>).</p>
 </dd>
 </dl>
 </dd>
@@ -147,27 +227,11 @@ is modelled as</p>
 NCGR-calibrated forecast.</p>
 </dd>
 </dl>
-<p>%(after_notes)s</p>
 <dl class="footnote brackets">
 <dt class="label" id="id2"><span class="brackets">1</span></dt>
-<dd><p>Dirkson et al., (2020): to be filled in with reference following publication.</p>
+<dd><p>Dirkson, A.​, B. Denis., M.,Sigmond., &amp; Merryfield, W.J. (2020). Development and Calibration of SeasonalProbabilistic Forecasts of Ice-free Dates and Freeze-up Dates. ​Weather and Forecasting​. doi:10.1175/WAF-D-20-0066.1.</p>
 </dd>
 </dl>
-<dl class="method">
-<dt id="ncgr.ncgr_fullfield.build_cons">
-<code class="sig-name descname">build_cons</code><span class="sig-paren">(</span><em class="sig-param">predictors</em>, <em class="sig-param">y</em><span class="sig-paren">)</span><a class="headerlink" href="#ncgr.ncgr_fullfield.build_cons" title="Permalink to this definition">¶</a></dt>
-<dd><p>Builds a dictionary for the constrainst on the DCNORM distribution parameters
-when calling on <code class="xref py py-class docutils literal notranslate"><span class="pre">scipy.optimize.minimize</span></code> in the 
-<a class="reference internal" href="#ncgr.ncgr_fullfield.calibrate_fullfield" title="ncgr.ncgr_fullfield.calibrate_fullfield"><code class="xref py py-meth docutils literal notranslate"><span class="pre">calibrate_fullfield()</span></code></a>.</p>
-<dl class="simple">
-<dt>Returns:</dt><dd><dl class="simple">
-<dt>cons (dict):</dt><dd><p>Contains the constraint callables used in <code class="xref py py-class docutils literal notranslate"><span class="pre">scipy.optimize.minimize</span></code>.</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
 <dl class="method">
 <dt id="ncgr.ncgr_fullfield.calibrate_fullfield">
 <code class="sig-name descname">calibrate_fullfield</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ncgr.ncgr_fullfield.calibrate_fullfield" title="Permalink to this definition">¶</a></dt>
@@ -192,6 +256,10 @@ in <code class="docutils literal notranslate"><span class="pre">mu_cal</span></c
 sea-ice retreat/advance, where <cite>nrow</cite> and <cite>ncol</cite> are defined as
 in <code class="docutils literal notranslate"><span class="pre">mu_cal</span></code>.</p>
 </dd>
+<dt>fcst_pre (ndarray), shape (<cite>nrow</cite>, <cite>ncol</cite>):</dt><dd><p>The probability for the pre-occurrence of the event.</p>
+</dd>
+<dt>fcst_non (ndarray), shape (<cite>nrow</cite>, <cite>ncol</cite>):</dt><dd><p>The probability for the non-occurrence of the event.</p>
+</dd>
 <dt>clim_terc (ndarray), shape (<cite>2</cite>, <cite>nrow</cite>, <cite>ncol</cite>):</dt><dd><p>The two terciles (i.e. 1/3 and 2/3 quantiles) for the observed climatology,
 where <cite>nrow</cite> and <cite>ncol</cite> are defined as
 in <code class="docutils literal notranslate"><span class="pre">mu_cal</span></code>.</p>
@@ -215,6 +283,10 @@ in the NetCDF files given to <a class="reference internal" href="#ncgr.ncgr_full
 DCNORM distribution, where <cite>nrow</cite> and <cite>ncol</cite> are defined as
 in <code class="docutils literal notranslate"><span class="pre">mu_cal</span></code>.</p>
 </dd>
+<dt>fcst_pre (ndarray), shape (<cite>nrow</cite>, <cite>ncol</cite>):</dt><dd><p>The probability for the pre-occurrence of the event.</p>
+</dd>
+<dt>fcst_non (ndarray), shape (<cite>nrow</cite>, <cite>ncol</cite>):</dt><dd><p>The probability for the non-occurrence of the event.</p>
+</dd>
 </dl>
 </div></blockquote>
 </dd>
@@ -234,7 +306,7 @@ an argument provided to <a class="reference internal" href="#ncgr.ncgr_fullfield
 <dt>mu_cal (ndarray), shape (<cite>nrow</cite>, <cite>ncol</cite>):</dt><dd><p>Calibrated <span class="math notranslate nohighlight">\(\mu\)</span> parameter for the predictive 
 DCNORM distribution, where <cite>nrow</cite> is the number of rows and
 <cite>ncol</cite> is the number of columns provided as spatial coordinates
-in the NetCDF files given to <a class="reference internal" href="#ncgr.ncgr_fullfield" title="ncgr.ncgr_fullfield"><code class="xref py py-class docutils literal notranslate"><span class="pre">ncgr_fullfield</span></code></a>.</p>
+in the NetCDF files given to <a class="reference internal" href="#ncgr.ncgr_fullfield" title="ncgr.ncgr_fullfield"><code class="xref py py-meth docutils literal notranslate"><span class="pre">ncgr_fullfield()</span></code></a>.</p>
 </dd>
 <dt>sigma_cal (ndarray), shape (<cite>nrow</cite>, <cite>ncol</cite>):</dt><dd><p>Calibrated <span class="math notranslate nohighlight">\(\sigma\)</span> parameter for the predictive 
 DCNORM distribution, where <cite>nrow</cite> and <cite>ncol</cite> are defined as
@@ -243,6 +315,10 @@ in <code class="docutils literal notranslate"><span class="pre">mu_cal</span></c
 <dt>fcst_probs (ndarray), shape (<cite>3</cite>, <cite>nrow</cite>, <cite>ncol</cite>):</dt><dd><p>The three forecast probabilities for early, near-normal, and late
 sea-ice retreat/advance, where <cite>nrow</cite> and <cite>ncol</cite> are defined as
 in <code class="docutils literal notranslate"><span class="pre">mu_cal</span></code>.</p>
+</dd>
+<dt>fcst_pre (ndarray), shape (<cite>nrow</cite>, <cite>ncol</cite>):</dt><dd><p>Probability for the pre-occurrence of the event.</p>
+</dd>
+<dt>fcst_non (ndarray), shape (<cite>nrow</cite>, <cite>ncol</cite>):</dt><dd><p>Probability for the non-occurrence of the event.</p>
 </dd>
 <dt>clim_terc (ndarray), shape (<cite>2</cite>, <cite>nrow</cite>, <cite>ncol</cite>):</dt><dd><p>The two terciles (i.e. 1/3 and 2/3 quantiles) for the observed climatology,
 where <cite>nrow</cite> and <cite>ncol</cite> are defined as
@@ -262,9 +338,67 @@ in <code class="docutils literal notranslate"><span class="pre">mu_cal</span></c
 <hr class="docutils" />
 <dl class="class">
 <dt id="ncgr.ncgr_gridpoint">
-<em class="property">class </em><code class="sig-prename descclassname">ncgr.</code><code class="sig-name descname">ncgr_gridpoint</code><span class="sig-paren">(</span><em class="sig-param">X</em>, <em class="sig-param">Y</em>, <em class="sig-param">X_t</em>, <em class="sig-param">tau_t</em>, <em class="sig-param">t</em>, <em class="sig-param">a</em>, <em class="sig-param">b</em>, <em class="sig-param">Y_clim=None</em>, <em class="sig-param">terc_interp=None</em>, <em class="sig-param">sigma_eqn='s3'</em>, <em class="sig-param">es_tol=0.001</em>, <em class="sig-param">pred_pval=0.05</em>, <em class="sig-param">disp=False</em><span class="sig-paren">)</span><a class="headerlink" href="#ncgr.ncgr_gridpoint" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">ncgr.</code><code class="sig-name descname">ncgr_gridpoint</code><span class="sig-paren">(</span><em class="sig-param">a</em>, <em class="sig-param">b</em><span class="sig-paren">)</span><a class="headerlink" href="#ncgr.ncgr_gridpoint" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div><dl>
+<dt>Args:</dt><dd><dl class="simple">
+<dt>a (float or int):</dt><dd><p>Minimum possible date for the event in 
+day-of-year units; e.g. 1=Jan 1, 91=April 1, 365=Dec 31). See definition 
+in [1]. IFDs or FUDs provided in input NetCDF files should be
+set to the value provided to <code class="docutils literal notranslate"><span class="pre">a</span></code> when the event has occurred at the time
+of forecast initialization.</p>
+</dd>
+<dt>b (float or int):</dt><dd><p>Maximum possible date for the event in 
+day-of-year units; e.g. 1=Jan 1, 91=April 1, 365=Dec 31). See definition 
+in [1]. IFDs or FUDs provided in input NetCDF files should be
+set to the value provided to <code class="docutils literal notranslate"><span class="pre">b</span></code> when the event does not occur by the end
+of the season.</p>
+</dd>
+</dl>
+<p>The following provides a brief description of NCGR; for a full description, see <a href="#id6"><span class="problematic" id="id3">[1]_</span></a>.</p>
+<p>NCGR assumes the observed IFD or FUD, <span class="math notranslate nohighlight">\(Y(t)\)</span> (a random variable), conditioned
+on the ensemble forecast <span class="math notranslate nohighlight">\(x_1(t),...,x_n(t)\)</span> follows a DCNORM distribution –
+i.e. <span class="math notranslate nohighlight">\(Y(t)|x_1(t),...,x_n(t)\sim N_{dc}(\mu(t),\sigma(t))\)</span>. The parameter <span class="math notranslate nohighlight">\(\mu\)</span>
+is modelled as</p>
+<blockquote>
+<div><div class="math notranslate nohighlight">
+\[\mu(t) = lpha_1\mu_{c}(t) + lpha_2 x_{\langle i \]</div>
+</div></blockquote>
+</dd>
+</dl>
+</div></blockquote>
+<p>angle}^{d}(t)</p>
+<blockquote>
+<div><p>The user can choose one of the following equations for modelling the paremter <span class="math notranslate nohighlight">\(\sigma\)</span></p>
+<blockquote>
+<div><div class="math notranslate nohighlight">
+\[\sigma_{I}(t) &amp;=eta_1\sigma_{c}, \ 
+\sigma_{II}(t) &amp;=eta_1\sigma_{c}+eta_2 s_x(t), \ 
+\sigma_{III}(t) &amp;=eta_1\sigma_{c}+eta_2 x_{\langle i \]</div>
+</div></blockquote>
+</div></blockquote>
+<p>angle}^{tc}(t)</p>
+<blockquote>
+<div><p>through the <code class="docutils literal notranslate"><span class="pre">sigma</span></code> argument, but by default <span class="math notranslate nohighlight">\(\sigma=\sigma_{III}\)</span>.</p>
+<p>The relevant method contained in this class is:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">calibrate_gridpoint()</span></code></dt><dd><p>Performs NCGR on the forecast IFD or FUD at a single gridpoint.</p>
+</dd>
+</dl>
+<p>%(after_notes)s</p>
+<dl class="footnote brackets">
+<dt class="label" id="id4"><span class="brackets">1</span></dt>
+<dd><p>Dirkson, A.​, B. Denis., M.,Sigmond., &amp; Merryfield, W.J. (2020). Development and Calibration of SeasonalProbabilistic Forecasts of Ice-free Dates and Freeze-up Dates. ​Weather and Forecasting​. doi:10.1175/WAF-D-20-0066.1.</p>
+</dd>
+</dl>
+</div></blockquote>
+<dl class="method">
+<dt id="ncgr.ncgr_gridpoint.build_model">
+<code class="sig-name descname">build_model</code><span class="sig-paren">(</span><em class="sig-param">X_t</em>, <em class="sig-param">X</em>, <em class="sig-param">Y</em>, <em class="sig-param">tau_t</em>, <em class="sig-param">t</em>, <em class="sig-param">sigma_eqn='s3'</em>, <em class="sig-param">pred_pval=0.05</em><span class="sig-paren">)</span><a class="headerlink" href="#ncgr.ncgr_gridpoint.build_model" title="Permalink to this definition">¶</a></dt>
 <dd><dl>
-<dt>Args:</dt><dd><dl>
+<dt>Args:</dt><dd><dl class="simple">
+<dt>X_t (ndarray), shape (<cite>n,</cite>):</dt><dd><p>Forecast to be calibrated, where <cite>n</cite> is the ensemble size.</p>
+</dd>
 <dt>X (ndarray), shape (<cite>N,n</cite>):</dt><dd><p>Forecasts for training NCGR, where <cite>N</cite> is the number of years
 for training and <cite>n</cite> is the ensemble size for a 
 given forecast.</p>
@@ -272,14 +406,105 @@ given forecast.</p>
 <dt>Y (ndarray), shape (<cite>N,</cite>):</dt><dd><p>Observations for training NCGR, where <cite>N</cite> is the number of years
 for training.</p>
 </dd>
-<dt>X_t (ndarray), shape (<cite>n,</cite>):</dt><dd><p>Forecast to be calibrated, where <cite>n</cite> is the ensemble size.</p>
-</dd>
 <dt>tau_t (ndarray), shape (<cite>N,</cite>):</dt><dd><p>Years corresponding to those used for training period (this should not
 contain the forecast year). The year should be based on the initialization 
 date, not the date of the IFD or FUD event.</p>
 </dd>
 <dt>t (float or int):</dt><dd><p>The year in which the forecast is initialized.</p>
 </dd>
+<dt>sigma_eqn (str, optional): </dt><dd><p>Refers to the regression equation to be used for the <span class="math notranslate nohighlight">\(\sigma\)</span>
+parameter in the NCGR model. This can be one of ‘s1’, ‘s2’, or ‘s3’.
+These are defined by the regression equations below as <span class="math notranslate nohighlight">\(\sigma_{I}\)</span>,
+<span class="math notranslate nohighlight">\(\sigma_{II}\)</span>, and <span class="math notranslate nohighlight">\(\sigma_{III}\)</span>, respectively. By default,
+<code class="docutils literal notranslate"><span class="pre">sigma='s3'</span></code> (i.e. <span class="math notranslate nohighlight">\(\sigma_{III}\)</span>).</p>
+</dd>
+<dt>pred_pval (float, optional):</dt><dd><p>The p-value for determining statistical significance of the second 
+predictor for the  <span class="math notranslate nohighlight">\(\sigma_{II}\)</span> or <span class="math notranslate nohighlight">\(\sigma_{III}\)</span>
+regression equations. By default, <code class="docutils literal notranslate"><span class="pre">pred_pval=0.05</span></code>.</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><dl>
+<dt>predictors_tau (ndarray or ndarray object), shape (2,2,N) or (2,)</dt><dd><p>Contains the predictors for both mu and sigma over the training 
+period. It’s an object
+if mu and sigma have different numbers of predictors (i.e. when
+there is no second term in the equation for sigma). It’s an array
+if mu and sigma have the same number of predictors. Regardless, the 
+following is always true for the first two entries:</p>
+<dl class="simple">
+<dt>predictors_tau[0] (ndarray), shape (2, N):</dt><dd><p>The predictors for mu over the training period</p>
+</dd>
+<dt>predictors_tau[1] (ndarray), shape (1, N) or (2, N):</dt><dd><p>The predictor(s) for sigma over the training period</p>
+</dd>
+</dl>
+</dd>
+<dt>predictors_t (ndarray or object array), shape (2,2) or shape (2,)</dt><dd><p>Contains the predictors for both mu and sigma for the forecast year
+t. It’s an object
+if mu and sigma have different numbers of predictors (i.e. when
+there is no second term in the equation for sigma). It’s an array
+if mu and sigma have the same number of predictors. Regardless, the 
+following is always true for the first two entries:</p>
+<dl class="simple">
+<dt>predictors_tau[0] (ndarray), shape (2,):</dt><dd><p>The predictors for mu for the forecast year t</p>
+</dd>
+<dt>predictors_tau[1] (ndarray), shape (1,) or (2,):</dt><dd><p>The predictor(s) for sigma for the forecast year t</p>
+</dd>
+</dl>
+</dd>
+<dt>coeffs0 (array), shape (3,) or (4,):</dt><dd><p>Initial guesses for the coefficients in the NCGR regression equations.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="ncgr.ncgr_gridpoint.optimizer">
+<code class="sig-name descname">optimizer</code><span class="sig-paren">(</span><em class="sig-param">Y</em>, <em class="sig-param">predictors_tau</em>, <em class="sig-param">coeffs0</em>, <em class="sig-param">es_tol=0.05</em>, <em class="sig-param">options=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ncgr.ncgr_gridpoint.optimizer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function for minimizing the CRPS over N forecasts. For this, 
+<code class="xref py py-class docutils literal notranslate"><span class="pre">scipy.optimize.minimize(method=’SLSQP’)</span></code> is called to 
+minimize the analytic expression for the CRPS when the distribution under
+consideration for the forecast is the DCNORM distribution.</p>
+<dl class="simple">
+<dt>Args:                 </dt><dd><dl class="simple">
+<dt>Y (ndarray), shape (<cite>N,</cite>):</dt><dd><p>Observations for training NCGR, where <cite>N</cite> is the number of years
+for training.</p>
+</dd>
+<dt>predictors_tau (ndarray or object of ndarray), shape (<cite>2,</cite>) or (<cite>2,4,N</cite>)</dt><dd><p>Predictors over the training period. If an object of ndarray, then
+<cite>predictors_tau[0]</cite> has shape (<cite>2,N</cite>) corresponding to predictors for
+<span class="math notranslate nohighlight">\(mu\)</span>, and <cite>predictors_tau[1]</cite> has shape
+(<cite>N,</cite>) corresponding to the single predictor for <span class="math notranslate nohighlight">\(sigma\)</span>.</p>
+</dd>
+<dt>coeffs0 (array), shape (3,) or (4,):</dt><dd><p>Initial guesses for the coefficients in the NCGR regression equations.</p>
+</dd>
+<dt>es_tol (float or None, optional):</dt><dd><p>Early stopping threshold used for minimizing the CRPS. 
+By default <code class="docutils literal notranslate"><span class="pre">es_tol=0.05</span></code>. Specifically, this argument
+sets the <code class="docutils literal notranslate"><span class="pre">tol</span></code> argument in <code class="xref py py-class docutils literal notranslate"><span class="pre">scipy.optimize.minimize(method=’SLSQP’)</span></code>.</p>
+</dd>
+<dt>options (dict, optional): </dt><dd><p>A dictionary of options to pass to :py:method:’scipy.optimize.minimize’ corresponding to 
+its <code class="docutils literal notranslate"><span class="pre">options</span></code> argument (see <code class="xref py py-class docutils literal notranslate"><span class="pre">scipy.optimize.minimize(method=’SLSQP’)</span></code>).</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><dl class="simple">
+<dt>coeffs (array):</dt><dd><p>Optimized regression coefficients.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="class">
+<dt id="ncgr.crps_funcs">
+<em class="property">class </em><code class="sig-prename descclassname">ncgr.</code><code class="sig-name descname">crps_funcs</code><span class="sig-paren">(</span><em class="sig-param">a</em>, <em class="sig-param">b</em><span class="sig-paren">)</span><a class="headerlink" href="#ncgr.crps_funcs" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class contains functions needed to perform CRPS minimization for the DCNORM distribution.
+It also contains a function for computing the CRPS when the forecast distribution
+takes the form of a DCNORM distribution (as it does for NCGR).</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
 <dt>a (float or int):</dt><dd><p>Minimum possible date for the event in non leap year
 day-of-year units; e.g. 1=Jan 1, 91=April 1, 365=Dec 31). A value
 larger than 365 is regarded as a date for the following year.</p>
@@ -289,14 +514,197 @@ day-of-year units; e.g. 1=Jan 1, 91=April 1, 365=Dec 31). A value
 larger than 365 is regarded as a date for the following year. The 
 <code class="docutils literal notranslate"><span class="pre">b</span></code> argument must be larger than the <code class="docutils literal notranslate"><span class="pre">a</span></code> argument.</p>
 </dd>
-<dt>Y_clim (ndarray, optional), shape (<cite>m,</cite>):</dt><dd><p>Dates used to compute climatologies for forecast probabilities
-and forecast anomalies. By default, <code class="docutils literal notranslate"><span class="pre">Y_clim</span></code> is <cite>None</cite>.</p>
+</dl>
 </dd>
-<dt>terc_interp (str or None):</dt><dd><p>Interpolation scheme used to compute the terciles for the observed climatology.
+</dl>
+<p>The methods contained in this class are:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">crps_dcnorm()</span></code></dt><dd><p>Computes the CRPS for a set of forecsts and observations
+when the predictive distribution takes the form of a 
+DCNORM distribution.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">crps_ncgr()</span></code></dt><dd><p>The cost function used when executing <code class="docutils literal notranslate"><span class="pre">scipy.optimize.mimize</span></code>
+in the <code class="docutils literal notranslate"><span class="pre">calibrate</span></code> method. Computes the mean CRPS as a function of a set
+of hindcast CDFs (modelled by NCGR) and observed dates.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">crps_ncgr_jac()</span></code></dt><dd><p>Called on in the <code class="docutils literal notranslate"><span class="pre">calibrate</span></code> method. 
+Computes the jacobian matrix for the CRPS cost function.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">crps_singleyear()</span></code></dt><dd><p>Called on in the <code class="docutils literal notranslate"><span class="pre">calibrate</span></code> method. 
+Computes the CRPS for a single forecast CDF (modelled as a DCNORM
+distribution) and observation.</p>
+</dd>
+</dl>
+<dl class="method">
+<dt id="ncgr.crps_funcs.crps_dcnorm">
+<code class="sig-name descname">crps_dcnorm</code><span class="sig-paren">(</span><em class="sig-param">y</em>, <em class="sig-param">mu</em>, <em class="sig-param">sigma</em><span class="sig-paren">)</span><a class="headerlink" href="#ncgr.crps_funcs.crps_dcnorm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Time mean continuous rank probability score (CRPS) when the distribution
+takes the form of a DCNORM distribution.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>y (ndarray), shape (<cite>n</cite>,):</dt><dd><p>Observed dates, where <cite>n</cite> is the number of
+forecast/observation pairs.</p>
+</dd>
+<dt>mu (ndarray), shape (<cite>n</cite>,):</dt><dd><p>DCNORM parameter <span class="math notranslate nohighlight">\(\mu\)</span> for each of the <cite>1,…,n</cite> forecast distributions.</p>
+</dd>
+<dt>sigma (ndarray), shape (<cite>n</cite>,):</dt><dd><p>DCNORM parameter <span class="math notranslate nohighlight">\(\sigma\)</span> for each of the <cite>1,…,n</cite> forecast distributions.</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><dl class="simple">
+<dt>result (float):</dt><dd><p>Time mean CRPS.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="ncgr.crps_funcs.crps_dcnorm_single">
+<code class="sig-name descname">crps_dcnorm_single</code><span class="sig-paren">(</span><em class="sig-param">y</em>, <em class="sig-param">mu</em>, <em class="sig-param">sigma</em><span class="sig-paren">)</span><a class="headerlink" href="#ncgr.crps_funcs.crps_dcnorm_single" title="Permalink to this definition">¶</a></dt>
+<dd><p>Continuous rank probability score (CRPS) for a single forecast when the distribution
+takes the form of a DCNORM distribution.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>y (float or int):</dt><dd><p>Observed date.</p>
+</dd>
+<dt>mu (float or int):</dt><dd><p>DCNORM parameter <span class="math notranslate nohighlight">\(\mu\)</span>.</p>
+</dd>
+<dt>sigma (float or int):</dt><dd><p>DCNORM parameter <span class="math notranslate nohighlight">\(\sigma\)</span></p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><dl class="simple">
+<dt>result (float):</dt><dd><p>CRPS</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="ncgr.crps_funcs.crps_ncgr">
+<code class="sig-name descname">crps_ncgr</code><span class="sig-paren">(</span><em class="sig-param">coeffs</em>, <em class="sig-param">predictors</em>, <em class="sig-param">y</em><span class="sig-paren">)</span><a class="headerlink" href="#ncgr.crps_funcs.crps_ncgr" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Args:            </dt><dd><dl class="simple">
+<dt>coeffs (list), shape (<cite>m</cite>,):</dt><dd><p>Coefficients in the NCGR regression equations, 
+where <cite>m</cite> is the total number of coefficients/predictors. The first two values
+correspond to those for <span class="math notranslate nohighlight">\(\mu\)</span> and the remaining values
+correspond to those for <span class="math notranslate nohighlight">\(\sigma\)</span>.</p>
+</dd>
+<dt>predictors (object), shape (<cite>n</cite>,):</dt><dd><p>Object containing the predictors, where <cite>n=2</cite> is the number of distribution parameters.
+The shape of either predictors[0] or predictors[1] is (<cite>m,p</cite>), where
+<cite>m</cite> is the number of coefficients/predictors for the corresponding parameter, and <cite>p</cite> is the number of
+years in the training period <code class="docutils literal notranslate"><span class="pre">self.tau_t</span></code>.</p>
+</dd>
+<dt>y (ndarray), shape (<cite>p</cite>,):</dt><dd><p>Array of observed dates, where <cite>p</cite> is the number of
+years in the training period <code class="docutils literal notranslate"><span class="pre">self.tau_t</span></code>.</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><p>The time-averaged continuous rank probability score (CRPS).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="ncgr.crps_funcs.crps_ncgr_jac">
+<code class="sig-name descname">crps_ncgr_jac</code><span class="sig-paren">(</span><em class="sig-param">coeffs</em>, <em class="sig-param">predictors</em>, <em class="sig-param">y</em><span class="sig-paren">)</span><a class="headerlink" href="#ncgr.crps_funcs.crps_ncgr_jac" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>coeffs (list), shape (<cite>n+m</cite>):</dt><dd><p>Coefficients in the NCGR regression equations, 
+where <cite>n=2</cite> is the number of distribution parameters 
+and <cite>m</cite> is the number of predictors for a given parameter. The first
+two values are the coefficients for <span class="math notranslate nohighlight">\(\mu\)</span> and the 
+remaining values are the coefficeints for <span class="math notranslate nohighlight">\(\sigma\)</span>.</p>
+</dd>
+<dt>predictors (object), shape (<cite>n</cite>,):</dt><dd><p>Object containing the predictors, where <cite>n=2</cite> is the number of distribution parameters.
+The shape of either predictors[0] or predictors[1] is (<cite>m,p</cite>), where
+<cite>m</cite> is the number of coefficients/predictors for the corresponding parameter, and <cite>p</cite> is the number of
+years in the training period <code class="docutils literal notranslate"><span class="pre">self.tau_t</span></code>.</p>
+</dd>
+<dt>y (ndarray), shape (<cite>p</cite>):</dt><dd><p>Array of observed dates, where <cite>p</cite> is the number of
+years in the training period <code class="docutils literal notranslate"><span class="pre">self.tau_t</span></code>.</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><dl class="simple">
+<dt>(ndarray), shape (m,):</dt><dd><p>The jacobian matrix of the time-averaged continuous rank probability score.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="ncgr.crps_funcs.crps_ncgr_sy">
+<code class="sig-name descname">crps_ncgr_sy</code><span class="sig-paren">(</span><em class="sig-param">params</em>, <em class="sig-param">y</em><span class="sig-paren">)</span><a class="headerlink" href="#ncgr.crps_funcs.crps_ncgr_sy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the continuous rank probability score
+for a single forecast with DCNORM distribution.</p>
+<dl class="simple">
+<dt>Args:     </dt><dd><dl class="simple">
+<dt>params (list), shape (2,):</dt><dd><p>List containing the two DCNORM distribution parameters 
+<span class="math notranslate nohighlight">\(\mu\)</span> and <span class="math notranslate nohighlight">\(\sigma\)</span>.</p>
+</dd>
+<dt>y (float):</dt><dd><p>The observation.</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><dl class="simple">
+<dt>result (float):</dt><dd><p>The CRPS.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="class">
+<dt id="ncgr.fcst_vs_clim">
+<em class="property">class </em><code class="sig-prename descclassname">ncgr.</code><code class="sig-name descname">fcst_vs_clim</code><span class="sig-paren">(</span><em class="sig-param">a</em>, <em class="sig-param">b</em><span class="sig-paren">)</span><a class="headerlink" href="#ncgr.fcst_vs_clim" title="Permalink to this definition">¶</a></dt>
+<dd><p>Contains functions for computing forecast quantities relative to observed climataology.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>a (float or int):</dt><dd><p>Minimum possible date for the event in non leap year
+day-of-year units; e.g. 1=Jan 1, 91=April 1, 365=Dec 31). A value
+larger than 365 is regarded as a date for the following year.</p>
+</dd>
+<dt>b (float or int):</dt><dd><p>Maximum possible date for the event in non leap year 
+day-of-year units; e.g. 1=Jan 1, 91=April 1, 365=Dec 31). A value
+larger than 365 is regarded as a date for the following year. The 
+<code class="docutils literal notranslate"><span class="pre">b</span></code> argument must be larger than the <code class="docutils literal notranslate"><span class="pre">a</span></code> argument.</p>
+</dd>
+<dt>fill_value (float):</dt><dd><p>The flag value given to an event probability when it doesn’t make sense to compute one; this
+occurs when the climatological terciles are equal to each other, for example.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="method">
+<dt id="ncgr.fcst_vs_clim.event_probs">
+<code class="sig-name descname">event_probs</code><span class="sig-paren">(</span><em class="sig-param">mu</em>, <em class="sig-param">sigma</em>, <em class="sig-param">y_clim</em>, <em class="sig-param">terc_interp=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ncgr.fcst_vs_clim.event_probs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the forecast probabilities for an early, normal, or late
+event relative to some defined climatology.</p>
+<dl>
+<dt>Args:</dt><dd><dl>
+<dt>mu (float):</dt><dd><p>The mu parameter for the DCNORM distribution</p>
+</dd>
+<dt>sigma (float):</dt><dd><p>The sigma parameter for the DCNORM distribution</p>
+</dd>
+<dt>y_clim (ndarray), shape (<cite>N,</cite>):</dt><dd><p>Array of climatological dates, where <cite>N</cite> is the number of dates (equiavalently years)
+used to compute climatological statistics.</p>
+</dd>
+<dt>terc_interp (str or None, optional):</dt><dd><p>Interpolation scheme used to compute the terciles for the observed climatology. Default is None.
 Can be one of the following:</p>
 <blockquote>
 <div><ul class="simple">
-<li><p>None: By default, terciles are estimated using the Harrell-Davis estimator (see :py:class:scipy.stats.mstats.hdquantiles)</p></li>
+<li><p>None: By default y_clim data are fit to the DCNORM distribution,</p></li>
+</ul>
+<p>and terciles are computed using its <code class="xref py py-meth docutils literal notranslate"><span class="pre">_ppf()</span></code> method.</p>
+<ul class="simple">
+<li><p>‘HD’: Estimate terciles using the Harrell-Davis estimator (see :py:class:scipy.stats.mstats.hdquantiles)</p></li>
 <li><p>‘nearest-rank’: Nearest rank or rank order method (see</p></li>
 </ul>
 <p><a class="reference external" href="https://en.wikipedia.org/wiki/Percentile#The_nearest-rank_method">https://en.wikipedia.org/wiki/Percentile#The_nearest-rank_method</a>)</p>
@@ -305,63 +713,13 @@ Can be one of the following:</p>
 </ul>
 </div></blockquote>
 </dd>
-<dt>sigma_eqn (str, optional): </dt><dd><p>Refers to the regression equation to be used for the <span class="math notranslate nohighlight">\(\sigma\)</span>
-parameter in the NCGR model. This can be one of ‘s1’, ‘s2’, or ‘s3’.
-These are defined by the regression equations below as <span class="math notranslate nohighlight">\(\sigma_{I}\)</span>,
-<span class="math notranslate nohighlight">\(\sigma_{II}\)</span>, and <span class="math notranslate nohighlight">\(\sigma_{III}\)</span>, respectively. By default,
-<code class="docutils literal notranslate"><span class="pre">sigma</span></code> is set to <code class="docutils literal notranslate"><span class="pre">'s3'</span></code>.</p>
-</dd>
-<dt>es_tol (float or None, optional):</dt><dd><p>Early stopping threshold used for minimizing the CRPS. 
-By default <code class="docutils literal notranslate"><span class="pre">es_tol</span></code> is set to <code class="docutils literal notranslate"><span class="pre">0.001</span></code>. Specificlaly, this argument
-sets the <code class="docutils literal notranslate"><span class="pre">tol</span></code> argument in <code class="xref py py-class docutils literal notranslate"><span class="pre">scipy.optimize.minimize(method=’SLSQP’)</span></code>.</p>
-</dd>
-<dt>pred_pval (float, optional):</dt><dd><p>The p-value for determining statistical significance of the second 
-predictor for the  <span class="math notranslate nohighlight">\(\sigma_{II}\)</span> or <span class="math notranslate nohighlight">\(\sigma_{III}\)</span>
-regression equations. By default, <code class="docutils literal notranslate"><span class="pre">pred_pval</span></code> is set to <code class="docutils literal notranslate"><span class="pre">0.05</span></code>.</p>
-</dd>
-<dt>disp (True or False, optional):</dt><dd><p>Set to True to display the numerical optimization message. By default,
-<code class="docutils literal notranslate"><span class="pre">disp</span></code> is set to <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p>
-</dd>
 </dl>
 </dd>
-</dl>
-<p>The following provides a brief description of NCGR; for a full description, see [1].</p>
-<p>NCGR assumes the observed IFD or FUD, <span class="math notranslate nohighlight">\(Y(t)\)</span> (a random variable), conditioned
-on the ensemble forecast <span class="math notranslate nohighlight">\(x_1(t),...,x_n(t)\)</span> follows a DCNORM distribution –
-i.e. <span class="math notranslate nohighlight">\(Y(t)|x_1(t),...,x_n(t)\sim N_{dc}(\mu(t),\sigma(t))\)</span>. The parameter <span class="math notranslate nohighlight">\(\mu\)</span>
-is modelled as</p>
-<blockquote>
-<div><div class="math notranslate nohighlight">
-\[\mu(t) = \alpha_1\mu_{c}(t) + \alpha_2 x_{\langle i \rangle}^{d}(t)\]</div>
-</div></blockquote>
-<p>The user can choose one of the following equations for modelling the paremter <span class="math notranslate nohighlight">\(\sigma\)</span></p>
-<blockquote>
-<div><div class="math notranslate nohighlight">
-\[\begin{split}\sigma_{I}(t) &amp;=\beta_1\sigma_{c}, \\ 
-\sigma_{II}(t) &amp;=\beta_1\sigma_{c}+\beta_2 s_x(t), \\ 
-\sigma_{III}(t) &amp;=\beta_1\sigma_{c}+\beta_2 x_{\langle i \rangle}^{tc}(t)\end{split}\]</div>
-</div></blockquote>
-<p>through the <code class="docutils literal notranslate"><span class="pre">sigma</span></code> argument, but by default <span class="math notranslate nohighlight">\(\sigma=\sigma_{III}\)</span>.</p>
-<p>The relevant method contained in this class is:</p>
-<dl class="simple">
-<dt><code class="docutils literal notranslate"><span class="pre">calibrate_gridpoint()</span></code></dt><dd><p>Performs NCGR on the forecast IFD or FUD at a single gridpoint.</p>
-</dd>
-</dl>
-<p>%(after_notes)s</p>
-<dl class="footnote brackets">
-<dt class="label" id="id3"><span class="brackets">1</span></dt>
-<dd><p>Dirkson., et al (2020): to be filled in with reference following acceptance.</p>
-</dd>
-</dl>
-<dl class="method">
-<dt id="ncgr.ncgr_gridpoint.build_cons">
-<code class="sig-name descname">build_cons</code><span class="sig-paren">(</span><em class="sig-param">predictors</em>, <em class="sig-param">y</em><span class="sig-paren">)</span><a class="headerlink" href="#ncgr.ncgr_gridpoint.build_cons" title="Permalink to this definition">¶</a></dt>
-<dd><p>Builds a dictionary for the constrainst on the DCNORM distribution parameters
-when calling on <code class="xref py py-class docutils literal notranslate"><span class="pre">scipy.optimize.minimize</span></code> in the 
-<code class="xref py py-meth docutils literal notranslate"><span class="pre">calibrate_fullfield()</span></code>.</p>
-<dl class="simple">
 <dt>Returns:</dt><dd><dl class="simple">
-<dt>cons (dict):</dt><dd><p>Contains the constraint callables used in <code class="xref py py-class docutils literal notranslate"><span class="pre">scipy.optimize.minimize</span></code>.</p>
+<dt>result (object ndarray):</dt><dd><p>An object array containing 2 arrays. The first array has shape (3,) and contains the forecast
+probabilities for being the event occuring early, near-normal, or late, respectively. The
+second array has shape (2,) and contains the climatological terciles deliniating 
+the event categories.</p>
 </dd>
 </dl>
 </dd>
@@ -369,25 +727,49 @@ when calling on <code class="xref py py-class docutils literal notranslate"><spa
 </dd></dl>
 
 <dl class="method">
-<dt id="ncgr.ncgr_gridpoint.calibrate_gridpoint">
-<code class="sig-name descname">calibrate_gridpoint</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ncgr.ncgr_gridpoint.calibrate_gridpoint" title="Permalink to this definition">¶</a></dt>
-<dd><p>Performs NCGR and returns relevant calibrated forecast quantities.</p>
+<dt id="ncgr.fcst_vs_clim.fcst_deterministic">
+<code class="sig-name descname">fcst_deterministic</code><span class="sig-paren">(</span><em class="sig-param">mu</em>, <em class="sig-param">sigma</em>, <em class="sig-param">y_clim</em><span class="sig-paren">)</span><a class="headerlink" href="#ncgr.fcst_vs_clim.fcst_deterministic" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the calibrated forecast ensemble mean and ensemble mean anomaly
+relative to climatology. Means for the forecast are calculated as the
+expected value of the calibrated DCNORM distribution.</p>
 <dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>mu (float):</dt><dd><p>The mu parameter for the DCNORM distribution</p>
+</dd>
+<dt>sigma (float):</dt><dd><p>The sigma parameter for the DCNORM distribution</p>
+</dd>
+<dt>y_clim (array):</dt><dd><p>Array of climatological dates.</p>
+</dd>
+</dl>
+</dd>
 <dt>Returns:</dt><dd><dl class="simple">
-<dt>mu_cal (float):</dt><dd><p>Calibrated <span class="math notranslate nohighlight">\(\mu\)</span> parameter for the predictive 
-DCNORM distribution.</p>
+<dt>fcst_mean (float):</dt><dd><p>The expected value of the forecast DCNORM distribution round to
+the nearest day.</p>
 </dd>
-<dt>sigma_cal (float):</dt><dd><p>Calibrated <span class="math notranslate nohighlight">\(\sigma\)</span> parameter for the predictive 
-DCNORM distribution.</p>
+<dt>fcst_mean_anom (float):</dt><dd><p>The anomaly of <code class="docutils literal notranslate"><span class="pre">mean</span></code> relative to the mean of <code class="docutils literal notranslate"><span class="pre">y_clim</span></code>.</p>
 </dd>
-<dt>fcst_probs (ndarray), shape (3,):</dt><dd><p>The three forecast probabilities for early, near-normal, and late
-sea-ice retreat/advance.</p>
+</dl>
 </dd>
-<dt>clim_terc (ndarray), shape (2,):</dt><dd><p>The two terciles (i.e. 1/3 and 2/3 quantiles) for the observed climatology.</p>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="ncgr.fcst_vs_clim.fcst_prenon">
+<code class="sig-name descname">fcst_prenon</code><span class="sig-paren">(</span><em class="sig-param">mu</em>, <em class="sig-param">sigma</em><span class="sig-paren">)</span><a class="headerlink" href="#ncgr.fcst_vs_clim.fcst_prenon" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the probabilities for the pre-occurrence and non-occurrence of the IFD/FUD
+event.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>mu (float):</dt><dd><p>The mu parameter for the DCNORM distribution</p>
 </dd>
-<dt>mean (float):</dt><dd><p>Expected value of the forecast DCNORM distribution.</p>
+<dt>sigma (float):</dt><dd><p>The sigma parameter for the DCNORM distribution</p>
 </dd>
-<dt>mean_anom (float):</dt><dd><p>Anomaly of <code class="docutils literal notranslate"><span class="pre">mean</span></code> relative to climatology.</p>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><dl class="simple">
+<dt>pre_occur (float):</dt><dd><p>Probability for the pre-occurrence of the IFD/FUD.</p>
+</dd>
+<dt>non_occur (float):</dt><dd><p>Probability for the pre-occurrence of the IFD/FUD.</p>
 </dd>
 </dl>
 </dd>
@@ -414,7 +796,8 @@ above <span class="math notranslate nohighlight">\(b\)</span>.</p>
 </div></blockquote>
 <p>where <span class="math notranslate nohighlight">\(1_{(a,b)}=1\)</span> when <span class="math notranslate nohighlight">\(a&lt;x&lt;b\)</span> and <span class="math notranslate nohighlight">\(1_{(a,b)}=0\)</span> otherwise; <span class="math notranslate nohighlight">\(\delta(x)\)</span> is the delta function;
 <span class="math notranslate nohighlight">\(\phi(\cdot)\)</span> and <span class="math notranslate nohighlight">\(\Phi(\cdot)\)</span> are respectively the PDf and CDF for a standard normal distribution with
-zero mean and unit variance.</p>
+zero mean and unit variance. The support is <span class="math notranslate nohighlight">\(a\leq X \leq b\)</span>, and requirements are <span class="math notranslate nohighlight">\(\infty&lt;\mu&lt;\infty\)</span> and
+<span class="math notranslate nohighlight">\(\sigma&gt;0\)</span>.</p>
 <p><a class="reference internal" href="#dcnorm.dcnorm_gen" title="dcnorm.dcnorm_gen"><code class="xref py py-class docutils literal notranslate"><span class="pre">dcnorm_gen</span></code></a> is an instance of a subclass of <code class="xref py py-class docutils literal notranslate"><span class="pre">rv_continuous</span></code>, and therefore
 inherits all of the methods within <code class="xref py py-class docutils literal notranslate"><span class="pre">rv_continuous</span></code>. Some of those methods
 have been subclassed here:</p>
@@ -429,7 +812,7 @@ have been subclassed here:</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">fit(data)</span></code></dt><dd><p>This replaces the <code class="docutils literal notranslate"><span class="pre">fit</span></code> method in <code class="xref py py-class docutils literal notranslate"><span class="pre">rv_continuous</span></code>. 
 Computes the maximum likelihood estimates for the DCNORM distribution
-parameters following [2].</p>
+parameters.</p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">dcnorm</span> <span class="kn">import</span> <span class="n">dcnorm_gen</span>
@@ -481,6 +864,27 @@ distribution obtained by fitting to X.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
+<dl class="method">
+<dt id="dcnorm.dcnorm_gen.cdf">
+<code class="sig-name descname">cdf</code><span class="sig-paren">(</span><em class="sig-param">x</em>, <em class="sig-param">m</em>, <em class="sig-param">s</em><span class="sig-paren">)</span><a class="headerlink" href="#dcnorm.dcnorm_gen.cdf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cumulative distribution function of the given RV.</p>
+<dl class="simple">
+<dt>x<span class="classifier">array_like</span></dt><dd><p>quantiles</p>
+</dd>
+<dt>arg1, arg2, arg3,…<span class="classifier">array_like</span></dt><dd><p>The shape parameter(s) for the distribution (see docstring of the
+instance object for more information)</p>
+</dd>
+<dt>loc<span class="classifier">array_like, optional</span></dt><dd><p>location parameter (default=0)</p>
+</dd>
+<dt>scale<span class="classifier">array_like, optional</span></dt><dd><p>scale parameter (default=1)</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>cdf<span class="classifier">ndarray</span></dt><dd><p>Cumulative distribution function evaluated at <cite>x</cite></p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="method">
 <dt id="dcnorm.dcnorm_gen.ecdf">
 <code class="sig-name descname">ecdf</code><span class="sig-paren">(</span><em class="sig-param">x</em>, <em class="sig-param">data</em><span class="sig-paren">)</span><a class="headerlink" href="#dcnorm.dcnorm_gen.ecdf" title="Permalink to this definition">¶</a></dt>
@@ -596,95 +1000,80 @@ equivalently, <code class="docutils literal notranslate"><span class="pre">fa=1<
 <p>&#64;author: arlan</p>
 <dl class="class">
 <dt id="sitdates.sitdates">
-<em class="property">class </em><code class="sig-prename descclassname">sitdates.</code><code class="sig-name descname">sitdates</code><span class="sig-paren">(</span><em class="sig-param">event=None</em>, <em class="sig-param">min_dates=None</em>, <em class="sig-param">max_dates=None</em><span class="sig-paren">)</span><a class="headerlink" href="#sitdates.sitdates" title="Permalink to this definition">¶</a></dt>
-<dd><p>This module contains several functions that are useful for defining minimium and 
-maximum possible dates, and for converting between day-of-year and normal date formats
+<em class="property">class </em><code class="sig-prename descclassname">sitdates.</code><code class="sig-name descname">sitdates</code><span class="sig-paren">(</span><em class="sig-param">event</em>, <em class="sig-param">min_dates=None</em>, <em class="sig-param">max_dates=None</em><span class="sig-paren">)</span><a class="headerlink" href="#sitdates.sitdates" title="Permalink to this definition">¶</a></dt>
+<dd><p>This module contains several functions that are useful for setting and getting minimium and 
+maximum possible dates, and for converting between day-of-year and date formats
 for plotting.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><dl class="simple">
-<dt>event (str, optional) {‘ifd’,’fud’}:</dt><dd><p>Can be one of either ‘ifd’ or ‘fud’. If provided, but <code class="docutils literal notranslate"><span class="pre">min_dates</span></code> and <code class="docutils literal notranslate"><span class="pre">max_dates</span></code>
-arguments aren’t provdided, then <code class="xref py py-data docutils literal notranslate"><span class="pre">sitdates.min_dates</span></code> and 
-<code class="xref py py-data docutils literal notranslate"><span class="pre">sitdates.max_dates</span></code> arrays will be set to the values used in
-[1]. If not provided, <code class="docutils literal notranslate"><span class="pre">min_dates</span></code> and <code class="docutils literal notranslate"><span class="pre">max_dates</span></code> arguments need to be specified
-in order to use <code class="xref py py-data docutils literal notranslate"><span class="pre">sitdates.min_dates</span></code> and 
-<code class="xref py py-data docutils literal notranslate"><span class="pre">sitdates.max_dates</span></code>.</p>
+<dt>event (str) {‘ifd’,’fud’}:</dt><dd><p>Can be either ‘ifd’ or ‘fud’.</p>
 </dd>
-<dt>min_dates (array, optional), shape=(12,):</dt><dd><p>If provided, this array defines the minimum dates
-allowed for the forecast dates for each of the 12 initialization dates
-of the year. If not provided, then <code class="xref py py-data docutils literal notranslate"><span class="pre">time_functions.min_dates</span></code>
-will be set to the values used in [1]. Note that you can override any
-of these default dates using the <a class="reference internal" href="#sitdates.sitdates.set_min_date" title="sitdates.sitdates.set_min_date"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set_min_date()</span></code></a> function.</p>
+<dt>min_dates (array, optional), shape=(12,):</dt><dd><p>If provided, this array defines the minimum date (<span class="math notranslate nohighlight">\(a\)</span> value)
+allowed for the ice-free date or freeze-up date for each calendar month corresponding to
+the initialization month.
+If not provided, then <code class="xref py py-data docutils literal notranslate"><span class="pre">time_functions.min_dates</span></code>
+will be set to the values used in [1]. To only change
+a subset of those dates from [1], rather than including this argument it may be faster to 
+use the <code class="xref py py-meth docutils literal notranslate"><span class="pre">set_min_date()</span></code> function.</p>
 </dd>
-<dt>max_dates (array, optional), shape=(12,):</dt><dd><p>If provided, this array defines the maximum dates
-allowed for the forecast dates for each of the 12 initialization dates
-of the year. If not provided, then <code class="xref py py-data docutils literal notranslate"><span class="pre">time_functions.min_dates</span></code>
-will be set to the values used in [1]. Note that you can override any
-of these default dates using the <a class="reference internal" href="#sitdates.sitdates.set_max_date" title="sitdates.sitdates.set_max_date"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set_max_date()</span></code></a> function.</p>
+<dt>max_dates (array, optional), shape=(12,):</dt><dd><p>If provided, this array defines the maximum date (<span class="math notranslate nohighlight">\(b\)</span> value)
+allowed for the ice-free date or freeze-up date for each calendar month corresponding to
+the initialization month.
+If not provided, then <code class="xref py py-data docutils literal notranslate"><span class="pre">time_functions.min_dates</span></code>
+will be set to the values used in [1]. To only change
+a subset of those dates from [1], rather than including this argument it may be faster to 
+use the <code class="xref py py-meth docutils literal notranslate"><span class="pre">set_min_date()</span></code> function.</p>
 </dd>
 </dl>
 </dd>
 </dl>
 <dl class="footnote brackets">
-<dt class="label" id="id4"><span class="brackets">1</span></dt>
-<dd><p>Dirkson et al., (2020): to be filled in with reference following publication.</p>
+<dt class="label" id="id5"><span class="brackets">1</span></dt>
+<dd><p>To be filled in with reference following publication.</p>
 </dd>
 </dl>
 <dl class="method">
 <dt id="sitdates.sitdates.date_to_doy">
-<code class="sig-name descname">date_to_doy</code><span class="sig-paren">(</span><em class="sig-param">mmdd</em>, <em class="sig-param">next_year=False</em><span class="sig-paren">)</span><a class="headerlink" href="#sitdates.sitdates.date_to_doy" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compute date in day-of-year format from mm/dd format.</p>
+<code class="sig-name descname">date_to_doy</code><span class="sig-paren">(</span><em class="sig-param">date</em><span class="sig-paren">)</span><a class="headerlink" href="#sitdates.sitdates.date_to_doy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute date in day-of-year format for a given date.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><dl class="simple">
-<dt>month (int):</dt><dd><p>Integer beteween 1 and 12</p>
-</dd>
-<dt>day (int):</dt><dd><p>Integer between 1 and 31</p>
-</dd>
-<dt>next_year (boolean):</dt><dd><p>True if DOY is for next year, false if DOY is for current year.
-Default is False.</p>
+<dt>date (object):</dt><dd><p>A ‘’date object’’ made with the <code class="xref py py-meth docutils literal notranslate"><span class="pre">datetime.date()</span></code> function
+(see: <a class="reference external" href="https://docs.python.org/3/library/datetime.html#date-objects">https://docs.python.org/3/library/datetime.html#date-objects</a>).</p>
 </dd>
 </dl>
 </dd>
-<dt>Returns:</dt><dd><p>Day of year integer</p>
+<dt>Returns:</dt><dd><p>Day-of-year value</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="method">
-<dt id="sitdates.sitdates.date_to_doy2">
-<code class="sig-name descname">date_to_doy2</code><span class="sig-paren">(</span><em class="sig-param">month</em>, <em class="sig-param">day</em>, <em class="sig-param">next_year=False</em><span class="sig-paren">)</span><a class="headerlink" href="#sitdates.sitdates.date_to_doy2" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compute day of year from a given month and day. It is possible
-to span to the next year, so we use 2013 and 2014 to compute day of years
-for such cases as these are non leap years.</p>
+<dt id="sitdates.sitdates.dates_to_doys">
+<code class="sig-name descname">dates_to_doys</code><span class="sig-paren">(</span><em class="sig-param">dates</em><span class="sig-paren">)</span><a class="headerlink" href="#sitdates.sitdates.dates_to_doys" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute dates in day-of-year format for a given list of dates.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><dl class="simple">
-<dt>month (int):</dt><dd><p>Integer beteween 1 and 12</p>
-</dd>
-<dt>day (int):</dt><dd><p>Integer between 1 and 31</p>
-</dd>
-<dt>next_year (boolean):</dt><dd><p>True if DOY is for next year, false if DOY is for current year.
-Default is False.</p>
+<dt>dates (list):</dt><dd><p>A list of ‘’date objects’’ made with the <code class="xref py py-meth docutils literal notranslate"><span class="pre">datetime.date()</span></code> function
+(see: <a class="reference external" href="https://docs.python.org/3/library/datetime.html#date-objects">https://docs.python.org/3/library/datetime.html#date-objects</a>).</p>
 </dd>
 </dl>
 </dd>
-<dt>Returns:</dt><dd><p>Day of year integer</p>
+<dt>Returns:</dt><dd><p>List of days-of-year values</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="sitdates.sitdates.doy_to_date">
-<code class="sig-name descname">doy_to_date</code><span class="sig-paren">(</span><em class="sig-param">doy</em>, <em class="sig-param">next_year=False</em><span class="sig-paren">)</span><a class="headerlink" href="#sitdates.sitdates.doy_to_date" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compute Month and day from given julian doy. It is possible
-to span to the next year, so we use 2013 and 2014 to compute day of years
-for such cases as these are non leap years.</p>
+<code class="sig-name descname">doy_to_date</code><span class="sig-paren">(</span><em class="sig-param">doy</em>, <em class="sig-param">format='%m/%d'</em><span class="sig-paren">)</span><a class="headerlink" href="#sitdates.sitdates.doy_to_date" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a date for a given day-of-year value.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><dl class="simple">
-<dt>month (int):</dt><dd><p>Integer beteween 1 and 12</p>
+<dt>doy (int or float):</dt><dd><p>Day-of-year value</p>
 </dd>
-<dt>day (int):</dt><dd><p>Integer between 1 and 31</p>
-</dd>
-<dt>next_year (boolean):</dt><dd><p>True if DOY is for next year, false if DOY is for current year.
-Default is False.</p>
+<dt>format (optional, ‘str’):</dt><dd><p>An acceptable format given to <code class="xref py py-meth docutils literal notranslate"><span class="pre">strftime()</span></code> (default=’%m%d’;
+see: <a class="reference external" href="https://docs.python.org/3/library/datetime.html#strftime-strptime-behavior">https://docs.python.org/3/library/datetime.html#strftime-strptime-behavior</a>)</p>
 </dd>
 </dl>
 </dd>
@@ -694,63 +1083,48 @@ Default is False.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="sitdates.sitdates.init_doy">
-<code class="sig-name descname">init_doy</code><span class="sig-paren">(</span><em class="sig-param">month</em><span class="sig-paren">)</span><a class="headerlink" href="#sitdates.sitdates.init_doy" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compute day of year of the initialization date for a given
-initialization month.</p>
+<dt id="sitdates.sitdates.get_max">
+<code class="sig-name descname">get_max</code><span class="sig-paren">(</span><em class="sig-param">month</em><span class="sig-paren">)</span><a class="headerlink" href="#sitdates.sitdates.get_max" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the value of the maximum possible ice-free/freeze-up date for a given initialization month.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><dl class="simple">
-<dt>month (int):</dt><dd><p>Integer beteween 1 and 12</p>
+<dt>month (int or array(N,dtype=’int’)):</dt><dd><p>Value(s) between 1 and 12 corresponding to the calendar month(s) for which the maximum
+date is to be returned.</p>
 </dd>
 </dl>
 </dd>
-<dt>Returns:</dt><dd><p>Day of year integer</p>
+<dt>Returns:</dt><dd><p>Day of year or days of year representing the maximum possible date for <code class="docutils literal notranslate"><span class="pre">month</span></code>.</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="method">
-<dt id="sitdates.sitdates.non_occurence">
-<code class="sig-name descname">non_occurence</code><span class="sig-paren">(</span><em class="sig-param">month</em><span class="sig-paren">)</span><a class="headerlink" href="#sitdates.sitdates.non_occurence" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the value that the ice free date 
-has been set to, given the non-occcurence of the event, for a 
-specfic initialization month.</p>
+<dt id="sitdates.sitdates.get_min">
+<code class="sig-name descname">get_min</code><span class="sig-paren">(</span><em class="sig-param">month</em><span class="sig-paren">)</span><a class="headerlink" href="#sitdates.sitdates.get_min" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the value of the minimum possible ice-free/freeze-up date for a given initialization month.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><dl class="simple">
-<dt>month (int):</dt><dd><p>Integer beteween 1 and 12</p>
+<dt>month (int or array(N,dtype=’int’)):</dt><dd><p>Value(s) between 1 and 12 corresponding to the calendar month(s) for which the minimum
+date is to be returned.</p>
 </dd>
 </dl>
 </dd>
-<dt>Returns:</dt><dd><p>Day of year integer</p>
+<dt>Returns:</dt><dd><p>Day of year or days of year representing the maximum possible date for <code class="docutils literal notranslate"><span class="pre">month</span></code>.</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="method">
-<dt id="sitdates.sitdates.pre_occurence">
-<code class="sig-name descname">pre_occurence</code><span class="sig-paren">(</span><em class="sig-param">month</em><span class="sig-paren">)</span><a class="headerlink" href="#sitdates.sitdates.pre_occurence" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the value that the ice free date 
-has been set to, given that ice is &lt;50% at start of forecast</p>
+<dt id="sitdates.sitdates.set_max">
+<code class="sig-name descname">set_max</code><span class="sig-paren">(</span><em class="sig-param">month</em>, <em class="sig-param">value</em><span class="sig-paren">)</span><a class="headerlink" href="#sitdates.sitdates.set_max" title="Permalink to this definition">¶</a></dt>
+<dd><p>Override pre-existing maximum date value(s) in <code class="xref py py-data docutils literal notranslate"><span class="pre">time_functions.min_dates</span></code> array.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><dl class="simple">
-<dt>month (int):</dt><dd><p>Integer beteween 1 and 12</p>
+<dt>month (int or array(N,dtype=’int’)):</dt><dd><p>Value(s) between 1 and 12 corresponding to the calendar month(s) for which the maximum
+date is to be overriden.</p>
 </dd>
-</dl>
-</dd>
-<dt>Returns:</dt><dd><p>Day of year integer</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="sitdates.sitdates.set_max_date">
-<code class="sig-name descname">set_max_date</code><span class="sig-paren">(</span><em class="sig-param">month</em>, <em class="sig-param">value</em><span class="sig-paren">)</span><a class="headerlink" href="#sitdates.sitdates.set_max_date" title="Permalink to this definition">¶</a></dt>
-<dd><p>Override pre-existing maximum date value in <code class="xref py py-meth docutils literal notranslate"><span class="pre">time_functions.min_dates()</span></code> array.</p>
-<dl class="simple">
-<dt>Args:</dt><dd><dl class="simple">
-<dt>month (int):</dt><dd><p>Value between 1 and 12 corresponding to the calendar month of the year to override.</p>
-</dd>
-<dt>value (int)</dt><dd><p>The date in day-of-year format that will override the pre-existing minimum date.</p>
+<dt>value (int, float, or array(N,)):</dt><dd><p>The date(s) in day-of-year format that will override the pre-existing maximum date(s)
+for the calendar month(s) provided in the <code class="docutils literal notranslate"><span class="pre">month</span></code> argument.</p>
 </dd>
 </dl>
 </dd>
@@ -760,14 +1134,16 @@ has been set to, given that ice is &lt;50% at start of forecast</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="sitdates.sitdates.set_min_date">
-<code class="sig-name descname">set_min_date</code><span class="sig-paren">(</span><em class="sig-param">month</em>, <em class="sig-param">value</em><span class="sig-paren">)</span><a class="headerlink" href="#sitdates.sitdates.set_min_date" title="Permalink to this definition">¶</a></dt>
-<dd><p>Override pre-existing minimum date value in <code class="xref py py-meth docutils literal notranslate"><span class="pre">time_functions.min_dates()</span></code> array.</p>
+<dt id="sitdates.sitdates.set_min">
+<code class="sig-name descname">set_min</code><span class="sig-paren">(</span><em class="sig-param">month</em>, <em class="sig-param">value</em><span class="sig-paren">)</span><a class="headerlink" href="#sitdates.sitdates.set_min" title="Permalink to this definition">¶</a></dt>
+<dd><p>Override pre-existing minimum date value(s) in <code class="xref py py-data docutils literal notranslate"><span class="pre">time_functions.min_dates</span></code> array.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><dl class="simple">
-<dt>month (int):</dt><dd><p>Value between 1 and 12 corresponding to the calendar month of the year to override.</p>
+<dt>month (int or array(N,dtype=’int’)):</dt><dd><p>Value(s) between 1 and 12 corresponding to the calendar month(s) for which the minimum
+date is to be overriden.</p>
 </dd>
-<dt>value (int)</dt><dd><p>The date in day-of-year format that will override the pre-existing minimum date.</p>
+<dt>value (int, float, or array(N,)):</dt><dd><p>The date(s) in day-of-year format that will override the pre-existing minimum date(s)
+for the calendar month(s) provided in the <code class="docutils literal notranslate"><span class="pre">month</span></code> argument.</p>
 </dd>
 </dl>
 </dd>
@@ -799,7 +1175,10 @@ has been set to, given that ice is &lt;50% at start of forecast</p>
 
 <h3>Navigation</h3>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="Examples/NCGR_fullfield_example.html">Performing NCGR on a full field</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples/NCGR_fullfield_example.html">Performing NCGR on a full forecast field</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Examples/NCGR_fullfield_example.html">Performing NCGR on a full forecast field</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Examples/NCGR_gridpoint_example.html">Performing NCGR at a gridpoint</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Examples/DCNORM_distribution_example.html">Using the dcnorm module</a></li>
 </ul>

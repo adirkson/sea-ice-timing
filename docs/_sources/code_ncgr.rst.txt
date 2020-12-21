@@ -12,6 +12,14 @@ ncgr
 .. autoclass:: ncgr_gridpoint
     :members:  
 ------------------------------
+
+.. autoclass:: crps_funcs
+    :members:  
+------------------------------
+
+.. autoclass:: fcst_vs_clim
+    :members:  
+------------------------------
     
 dcnorm
 --------------- 

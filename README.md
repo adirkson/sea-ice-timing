@@ -1,14 +1,14 @@
 # sea-ice-timing
 
-Welcome to the sea-ice-timing repository, which contains the codes used in to calibrate probabilistic forecasts of sea ice retreat and advance date forecasts in [1]. Currently, the contents of this project are under construction and are preliminary. Contents will be updated following publication of [1]. 
+Welcome to the sea-ice-timing repository. Here you will find resources to calibrate probabilistic forecasts of sea-ice retreat and advance dates following the methodology developed in [1].
 
 
-Documentation and examples
---------------------------
+Installation, documentation, examples
+--------------------------------------
 <https://adirkson.github.io/sea-ice-timing/>
 
 Reference
 ---------
-[1] Dirkson A., B. Denis, M. Sigmond, W.J. Merryfield. Development and Calibration of Seasonal Probabilistic Forecasts of Ice-free Dates and Freeze-up Dates. Weather and Forecasting, under review.
+[1] Dirkson, A.​, B. Denis., M.,Sigmond., & Merryfield, W.J. (2020). Development and Calibration of SeasonalProbabilistic Forecasts of Ice-free Dates and Freeze-up Dates. ​Weather and Forecasting​. doi:10.1175/WAF-D-20-0066.1.
 
 

@@ -7,9 +7,8 @@ NCGR
 ==========================================
 ==========================================
 
-``NCGR`` is a Python package is for calibrating ensemble forecasts of
-ice-free dates and freeze-up dates using Non-homogenous Censored Gaussian Regression (NCGR). 
-``NCGR`` is currently in beta version and will be updated following publication of [1].
+``NCGR`` is a Python package for calibrating probabilistic forecasts of
+ice-free dates and freeze-up dates using Non-homogenous Censored Gaussian Regression (NCGR) [1]. 
 
 
 Installation
@@ -24,8 +23,9 @@ Simple Usage
 
    from NCGR import ncgr
 
-   ncgr.ncgr_fullfield(hc_netcdf, obs_netcdf, fcst_netcdf, out_netcdf, event,
-                    a, b, clim_netcdf=clim_netcdf) 
+   ncgr.ncgr_fullfield(fcst_netcdf, hc_netcdf, obs_netcdf, out_netcdf, event,
+                       a, b, model_dict, obs_dict, 
+                       clim_netcdf=clim_netcdf) 
 
 
 Demos with Jupyter Notebook
@@ -48,7 +48,7 @@ Documentation
 
 Reference
 ----------
-[1] Dirkson A., B. Denis, M. Sigmond, W.J. Merryfield. Development and Calibration of Seasonal Probabilistic Forecasts of Ice-free Dates and Freeze-up Dates. Weather and Forecasting, under review.
+[1] Dirkson, A.​, B. Denis., M.,Sigmond., & Merryfield, W.J. (2020). Development and Calibration of SeasonalProbabilistic Forecasts of Ice-free Dates and Freeze-up Dates. ​Weather and Forecasting​. doi:10.1175/WAF-D-20-0066.1.
    
 Indices and tables
 ------------------

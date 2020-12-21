@@ -24,7 +24,7 @@ copyright = '2020, Arlan Dirkson'
 author = 'Arlan Dirkson'
 
 # The full version, including alpha/beta/rc tags
-release = '1.0.0'
+release = '1.0.2'
 
 
 # -- General configuration ---------------------------------------------------
